@@ -10,7 +10,7 @@ COPY . .
 # Give execute permission to gradlew
 RUN chmod +x ./gradlew
 
-# Build the application
+# Build the application with Java 17
 RUN ./gradlew build -x test
 
 # Copy the built JAR file
