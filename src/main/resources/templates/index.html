@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyarte - 従業員カルテ管理システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+            min-height: 100vh;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .free-input-area {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .free-input-area:focus-within {
+            border-color: #ff6b35;
+            box-shadow: 0 15px 40px rgba(255, 107, 53, 0.2);
+        }
+        .voice-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            transition: all 0.3s ease;
+        }
+        .voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        .voice-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .menu-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .calendar-widget {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .recent-notes {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .note-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <!-- メニューアイコン -->
+    <div class="menu-icon">
+        <div class="dropdown">
+            <button class="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/employees"><i class="fas fa-users"></i> 従業員管理</a></li>
+                <li><a class="dropdown-item" href="/employees/new"><i class="fas fa-user-plus"></i> 新規登録</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/h2-console" target="_blank"><i class="fas fa-database"></i> データベース</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="main-container p-4">
+                    <!-- ヘッダー -->
+                    <div class="text-center mb-4">
+                        <h1 class="display-5 mb-2">
+                            <i class="fas fa-star"></i> Kyarte
+                        </h1>
+                        <p class="text-muted">何でも入力してください。AIが自動で整理します。</p>
+                    </div>
+
+                    <div class="row">
+                        <!-- メイン入力エリア -->
+                        <div class="col-lg-8">
+                            <div class="free-input-area p-4">
+                                <div class="mb-3">
+                                    <label for="freeInput" class="form-label">
+                                        <i class="fas fa-pen"></i> フリー入力
+                                    </label>
+                                    <textarea class="form-control" id="freeInput" rows="8" 
+                                              placeholder="部下との会話、思いついたこと、予定など何でも入力してください...&#10;&#10;例：&#10;・田中さんが来週から有給を取るって言ってた&#10;・佐藤さんの体調が良くないみたい&#10;・明日の会議で人事異動の話をする予定"></textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" id="clearBtn">
+                                            <i class="fas fa-eraser"></i> クリア
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info voice-btn" id="voiceBtn" >
+                                            <i class="fas fa-microphone"></i>
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="sendBtn">
+                                        <i class="fas fa-paper-plane"></i> 送信
+                                    </button>
+                                </div>
+                                
+                                <!-- 音声認識結果表示エリア -->
+                                <div id="voiceResult" class="mt-3" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-microphone-alt"></i>
+                                        <span id="voiceText"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 最近の入力履歴 -->
+                            <div class="mt-4">
+                                <h5><i class="fas fa-history"></i> 最近の入力</h5>
+                                <div class="recent-notes" th:if="${!recentNotes.empty}">
+                                    <div th:each="note : ${recentNotes}" class="note-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <p class="mb-1" th:text="${note.content}"></p>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span th:text="${#temporals.format(note.createdAt, 'MM/dd HH:mm')}"></span>
+                                                    <span th:if="${note.inputType == 'voice'}" class="badge bg-warning ms-2">音声</span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${recentNotes.empty}" class="text-center text-muted py-3">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                    <p>まだ入力履歴がありません</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- サイドバー（カレンダー予定） -->
+                        <div class="col-lg-4">
+                            <div class="calendar-widget p-3">
+                                <h5><i class="fas fa-calendar-alt"></i> 直近の予定</h5>
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-calendar-plus fa-2x mb-2"></i>
+                                    <p>予定機能は今後実装予定</p>
+                                    <small>AIが入力内容から自動で予定を抽出します</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 音声認識機能
+        let recognition;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'ja-JP';
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('freeInput').value = transcript;
+                document.getElementById('voiceText').textContent = transcript;
+                document.getElementById('voiceResult').style.display = 'block';
+                stopRecording();
+            };
+
+            recognition.onerror = function(event) {
+                console.error('音声認識エラー:', event.error);
+                stopRecording();
+            };
+
+            recognition.onend = function() {
+                stopRecording();
+            };
+        }
+
+        function startRecording() {
+            if (recognition) {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('voiceBtn').classList.add('recording');
+                document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-stop"></i>';
+            } else {
+                alert('お使いのブラウザは音声認識に対応していません。');
+            }
+        }
+
+        function stopRecording() {
+            if (recognition && isRecording) {
+                recognition.stop();
+                isRecording = false;
+                document.getElementById('voiceBtn').classList.remove('recording');
+                document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+            }
+        }
+
+        // イベントリスナー
+        document.getElementById('voiceBtn').addEventListener('click', function() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('freeInput').value = '';
+            document.getElementById('voiceResult').style.display = 'none';
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            const content = document.getElementById('freeInput').value.trim();
+            if (!content) {
+                alert('入力内容を入力してください。');
+                return;
+            }
+
+            const inputType = document.getElementById('voiceResult').style.display !== 'none' ? 'voice' : 'text';
+            
+            // 送信処理
+            fetch('/save-note', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}&inputType=${inputType}`
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result === 'success') {
+                    alert('保存しました！');
+                    document.getElementById('freeInput').value = '';
+                    document.getElementById('voiceResult').style.display = 'none';
+                    // ページをリロードして履歴を更新
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('エラー:', error);
+                alert('保存に失敗しました。');
+            });
+        });
+    </script>
+</body>
+</html> 

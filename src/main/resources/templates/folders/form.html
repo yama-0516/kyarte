@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${folder.id == null ? '新規フォルダ作成' : 'フォルダ編集'} + ' - Kyarte'">フォルダ - Kyarte</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+            min-height: 100vh;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="main-container p-4">
+                    <!-- ヘッダー -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-folder"></i>
+                                <span th:text="${folder.id == null ? '新規フォルダ作成' : 'フォルダ編集'}">フォルダ</span>
+                            </h2>
+                            <p class="text-muted mb-0">フォルダの情報を入力してください</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/folders" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> 戻る
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- フォーム -->
+                    <div class="form-container p-4">
+                        <form th:action="${folder.id == null ? '/folders' : '/folders/' + folder.id}" 
+                              th:object="${folder}" method="post">
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-folder"></i> フォルダ名 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" 
+                                       placeholder="例：営業部、開発チーム、新入社員" required>
+                                <div class="form-text">フォルダを識別するための名前を入力してください</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-info-circle"></i> 説明
+                                </label>
+                                <textarea class="form-control" id="description" th:field="*{description}" 
+                                          rows="4" placeholder="フォルダの用途や説明を入力してください&#10;例：営業部のメンバーを管理するフォルダ&#10;主に顧客対応や売上管理に関する情報を記録">
+                                </textarea>
+                                <div class="form-text">フォルダの用途や説明を入力してください（任意）</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="/folders" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> キャンセル
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    <span th:text="${folder.id == null ? '作成' : '更新'}">保存</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- ヒント -->
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb"></i> フォルダ作成のヒント</h6>
+                            <ul class="mb-0">
+                                <li><strong>部署別</strong>：営業部、開発部、人事部など</li>
+                                <li><strong>プロジェクト別</strong>：Aプロジェクト、Bプロジェクトなど</li>
+                                <li><strong>役職別</strong>：マネージャー、リーダー、一般社員など</li>
+                                <li><strong>入社年別</strong>：新入社員、中堅社員、ベテランなど</li>
+                                <li><strong>スキル別</strong>：Java開発者、営業担当、デザイナーなど</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
