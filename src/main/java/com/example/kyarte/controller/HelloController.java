@@ -16,6 +16,9 @@ import com.example.kyarte.dto.AiAnalysisResult;
 import com.example.kyarte.service.MockAiAnalysisService;
 import com.example.kyarte.service.GeminiAnalysisService;
 import com.example.kyarte.repository.EmployeeRepository;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 @Controller
 public class HelloController {
@@ -407,54 +410,160 @@ public class HelloController {
     @GetMapping("/debug/init-dummy-employees")
     @ResponseBody
     public String initDummyEmployees() {
-        try {
-            // 既存の従業員を削除
-            employeeRepository.deleteAll();
-            
-            // ダミー従業員を作成
-            Employee employee1 = new Employee();
-            employee1.setLastName("佐藤");
-            employee1.setFirstName("一");
-            employee1.setDepartment("営業部");
-            employee1.setPosition("主任");
-            employee1.setEmail("sato.ichi@example.com");
-            employee1.setPhone("090-1234-5678");
-            employee1.setNotes("営業成績優秀。顧客からの信頼も厚い。");
-            employeeRepository.save(employee1);
-            
-            Employee employee2 = new Employee();
-            employee2.setLastName("田中");
-            employee2.setFirstName("次郎");
-            employee2.setDepartment("開発部");
-            employee2.setPosition("エンジニア");
-            employee2.setEmail("tanaka.jiro@example.com");
-            employee2.setPhone("090-2345-6789");
-            employee2.setNotes("Java開発が得意。新しい技術の習得も積極的。");
-            employeeRepository.save(employee2);
-            
-            Employee employee3 = new Employee();
-            employee3.setLastName("鈴木");
-            employee3.setFirstName("三郎");
-            employee3.setDepartment("人事部");
-            employee3.setPosition("課長");
-            employee3.setEmail("suzuki.saburo@example.com");
-            employee3.setPhone("090-3456-7890");
-            employee3.setNotes("人事制度の改善に取り組んでいる。");
-            employeeRepository.save(employee3);
-            
-            Employee employee4 = new Employee();
-            employee4.setLastName("スミス");
-            employee4.setFirstName("ポール");
-            employee4.setDepartment("営業部");
-            employee4.setPosition("マネージャー");
-            employee4.setEmail("smith.paul@example.com");
-            employee4.setPhone("090-4567-8901");
-            employee4.setNotes("海外営業を担当。英語が堪能。");
-            employeeRepository.save(employee4);
-            
-            return "ダミー従業員を再登録しました！";
-        } catch (Exception e) {
-            return "エラー: " + e.getMessage();
-        }
+        System.out.println("=== ダミー社員20人作成開始 ===");
+        
+        // 既存のデータをクリア
+        employeeRepository.deleteAll();
+        
+        		// ダミー社員データを作成
+		List<Employee> dummyEmployees = new ArrayList<>();
+		
+		// 1. 田中 太郎
+		Employee emp1 = new Employee();
+		emp1.setLastName("田中"); emp1.setFirstName("太郎"); emp1.setBirthDate(LocalDate.of(1985, 3, 15));
+		emp1.setDepartment("営業部"); emp1.setPosition("営業マネージャー"); emp1.setEmail("tanaka@company.com");
+		emp1.setPhone("090-1234-5678"); emp1.setNotes("営業成績優秀、リーダーシップあり");
+		dummyEmployees.add(emp1);
+		
+		// 2. 佐藤 花子
+		Employee emp2 = new Employee();
+		emp2.setLastName("佐藤"); emp2.setFirstName("花子"); emp2.setBirthDate(LocalDate.of(1990, 7, 22));
+		emp2.setDepartment("人事部"); emp2.setPosition("人事担当"); emp2.setEmail("sato@company.com");
+		emp2.setPhone("090-2345-6789"); emp2.setNotes("コミュニケーション能力高、新入社員教育担当");
+		dummyEmployees.add(emp2);
+		
+		// 3. 鈴木 一郎
+		Employee emp3 = new Employee();
+		emp3.setLastName("鈴木"); emp3.setFirstName("一郎"); emp3.setBirthDate(LocalDate.of(1988, 11, 8));
+		emp3.setDepartment("開発部"); emp3.setPosition("シニアエンジニア"); emp3.setEmail("suzuki@company.com");
+		emp3.setPhone("090-3456-7890"); emp3.setNotes("Java/Spring Boot専門、技術力高い");
+		dummyEmployees.add(emp3);
+		
+		// 4. 高橋 美咲
+		Employee emp4 = new Employee();
+		emp4.setLastName("高橋"); emp4.setFirstName("美咲"); emp4.setBirthDate(LocalDate.of(1992, 4, 12));
+		emp4.setDepartment("デザイン部"); emp4.setPosition("UI/UXデザイナー"); emp4.setEmail("takahashi@company.com");
+		emp4.setPhone("090-4567-8901"); emp4.setNotes("クリエイティブな発想、ユーザビリティ重視");
+		dummyEmployees.add(emp4);
+		
+		// 5. 渡辺 健太
+		Employee emp5 = new Employee();
+		emp5.setLastName("渡辺"); emp5.setFirstName("健太"); emp5.setBirthDate(LocalDate.of(1987, 9, 30));
+		emp5.setDepartment("営業部"); emp5.setPosition("営業担当"); emp5.setEmail("watanabe@company.com");
+		emp5.setPhone("090-5678-9012"); emp5.setNotes("粘り強い営業スタイル、顧客との関係構築が得意");
+		dummyEmployees.add(emp5);
+		
+		// 6. 伊藤 恵子
+		Employee emp6 = new Employee();
+		emp6.setLastName("伊藤"); emp6.setFirstName("恵子"); emp6.setBirthDate(LocalDate.of(1991, 12, 3));
+		emp6.setDepartment("経理部"); emp6.setPosition("経理担当"); emp6.setEmail("ito@company.com");
+		emp6.setPhone("090-6789-0123"); emp6.setNotes("正確な数字処理、コスト管理意識高い");
+		dummyEmployees.add(emp6);
+		
+		// 7. 山田 大輔
+		Employee emp7 = new Employee();
+		emp7.setLastName("山田"); emp7.setFirstName("大輔"); emp7.setBirthDate(LocalDate.of(1986, 6, 18));
+		emp7.setDepartment("開発部"); emp7.setPosition("フロントエンドエンジニア"); emp7.setEmail("yamada@company.com");
+		emp7.setPhone("090-7890-1234"); emp7.setNotes("React/Vue.js専門、最新技術に詳しい");
+		dummyEmployees.add(emp7);
+		
+		// 8. 中村 由美
+		Employee emp8 = new Employee();
+		emp8.setLastName("中村"); emp8.setFirstName("由美"); emp8.setBirthDate(LocalDate.of(1993, 2, 25));
+		emp8.setDepartment("マーケティング部"); emp8.setPosition("マーケティング担当"); emp8.setEmail("nakamura@company.com");
+		emp8.setPhone("090-8901-2345"); emp8.setNotes("SNSマーケティング得意、トレンド感覚鋭い");
+		dummyEmployees.add(emp8);
+		
+		// 9. 小林 正男
+		Employee emp9 = new Employee();
+		emp9.setLastName("小林"); emp9.setFirstName("正男"); emp9.setBirthDate(LocalDate.of(1984, 8, 14));
+		emp9.setDepartment("営業部"); emp9.setPosition("営業部長"); emp9.setEmail("kobayashi@company.com");
+		emp9.setPhone("090-9012-3456"); emp9.setNotes("営業戦略立案、チームマネジメント経験豊富");
+		dummyEmployees.add(emp9);
+		
+		// 10. 加藤 愛
+		Employee emp10 = new Employee();
+		emp10.setLastName("加藤"); emp10.setFirstName("愛"); emp10.setBirthDate(LocalDate.of(1994, 5, 7));
+		emp10.setDepartment("人事部"); emp10.setPosition("採用担当"); emp10.setEmail("kato@company.com");
+		emp10.setPhone("090-0123-4567"); emp10.setNotes("新卒採用担当、面接官として定評あり");
+		dummyEmployees.add(emp10);
+		
+		// 11. 吉田 雄一
+		Employee emp11 = new Employee();
+		emp11.setLastName("吉田"); emp11.setFirstName("雄一"); emp11.setBirthDate(LocalDate.of(1989, 1, 20));
+		emp11.setDepartment("開発部"); emp11.setPosition("バックエンドエンジニア"); emp11.setEmail("yoshida@company.com");
+		emp11.setPhone("090-1234-5678"); emp11.setNotes("Python/Django専門、データベース設計得意");
+		dummyEmployees.add(emp11);
+		
+		// 12. 山本 真理
+		Employee emp12 = new Employee();
+		emp12.setLastName("山本"); emp12.setFirstName("真理"); emp12.setBirthDate(LocalDate.of(1990, 10, 11));
+		emp12.setDepartment("デザイン部"); emp12.setPosition("グラフィックデザイナー"); emp12.setEmail("yamamoto@company.com");
+		emp12.setPhone("090-2345-6789"); emp12.setNotes("ブランディングデザイン、ロゴ制作実績多数");
+		dummyEmployees.add(emp12);
+		
+		// 13. 松本 和也
+		Employee emp13 = new Employee();
+		emp13.setLastName("松本"); emp13.setFirstName("和也"); emp13.setBirthDate(LocalDate.of(1987, 4, 5));
+		emp13.setDepartment("営業部"); emp13.setPosition("営業担当"); emp13.setEmail("matsumoto@company.com");
+		emp13.setPhone("090-3456-7890"); emp13.setNotes("法人営業専門、大企業との取引実績あり");
+		dummyEmployees.add(emp13);
+		
+		// 14. 井上 麻衣
+		Employee emp14 = new Employee();
+		emp14.setLastName("井上"); emp14.setFirstName("麻衣"); emp14.setBirthDate(LocalDate.of(1992, 8, 28));
+		emp14.setDepartment("経理部"); emp14.setPosition("経理担当"); emp14.setEmail("inoue@company.com");
+		emp14.setPhone("090-4567-8901"); emp14.setNotes("税務申告、決算業務経験豊富");
+		dummyEmployees.add(emp14);
+		
+		// 15. 木村 達也
+		Employee emp15 = new Employee();
+		emp15.setLastName("木村"); emp15.setFirstName("達也"); emp15.setBirthDate(LocalDate.of(1985, 12, 16));
+		emp15.setDepartment("開発部"); emp15.setPosition("インフラエンジニア"); emp15.setEmail("kimura@company.com");
+		emp15.setPhone("090-5678-9012"); emp15.setNotes("AWS/Azure専門、クラウドインフラ構築得意");
+		dummyEmployees.add(emp15);
+		
+		// 16. 林 美穂
+		Employee emp16 = new Employee();
+		emp16.setLastName("林"); emp16.setFirstName("美穂"); emp16.setBirthDate(LocalDate.of(1991, 3, 9));
+		emp16.setDepartment("マーケティング部"); emp16.setPosition("コンテンツマーケティング"); emp16.setEmail("hayashi@company.com");
+		emp16.setPhone("090-6789-0123"); emp16.setNotes("コンテンツ制作、SEO対策専門");
+		dummyEmployees.add(emp16);
+		
+		// 17. 斎藤 誠
+		Employee emp17 = new Employee();
+		emp17.setLastName("斎藤"); emp17.setFirstName("誠"); emp17.setBirthDate(LocalDate.of(1988, 7, 2));
+		emp17.setDepartment("営業部"); emp17.setPosition("営業担当"); emp17.setEmail("saito@company.com");
+		emp17.setPhone("090-7890-1234"); emp17.setNotes("新規開拓営業、スタートアップ企業との取引実績");
+		dummyEmployees.add(emp17);
+		
+		// 18. 清水 香織
+		Employee emp18 = new Employee();
+		emp18.setLastName("清水"); emp18.setFirstName("香織"); emp18.setBirthDate(LocalDate.of(1993, 11, 19));
+		emp18.setDepartment("人事部"); emp18.setPosition("人事担当"); emp18.setEmail("shimizu@company.com");
+		emp18.setPhone("090-8901-2345"); emp18.setNotes("研修企画、人材育成プログラム開発");
+		dummyEmployees.add(emp18);
+		
+		// 19. 森 健二
+		Employee emp19 = new Employee();
+		emp19.setLastName("森"); emp19.setFirstName("健二"); emp19.setBirthDate(LocalDate.of(1986, 2, 13));
+		emp19.setDepartment("開発部"); emp19.setPosition("QAエンジニア"); emp19.setEmail("mori@company.com");
+		emp19.setPhone("090-9012-3456"); emp19.setNotes("テスト自動化、品質保証プロセス改善");
+		dummyEmployees.add(emp19);
+		
+		// 20. 池田 美咲
+		Employee emp20 = new Employee();
+		emp20.setLastName("池田"); emp20.setFirstName("美咲"); emp20.setBirthDate(LocalDate.of(1990, 9, 6));
+		emp20.setDepartment("デザイン部"); emp20.setPosition("Webデザイナー"); emp20.setEmail("ikeda@company.com");
+		emp20.setPhone("090-0123-4567"); emp20.setNotes("レスポンシブデザイン、アクセシビリティ対応");
+		dummyEmployees.add(emp20);
+        
+        // データベースに保存
+        employeeRepository.saveAll(dummyEmployees);
+        
+        System.out.println("=== ダミー社員20人作成完了 ===");
+        System.out.println("作成された社員数: " + dummyEmployees.size());
+        
+        return "ダミー社員20人を作成しました！";
     }
 }
