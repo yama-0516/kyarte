@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy the entire project
 COPY . .
 
+# Give execute permission to gradlew
+RUN chmod +x ./gradlew
+
 # Build the application
 RUN ./gradlew build -x test
 
