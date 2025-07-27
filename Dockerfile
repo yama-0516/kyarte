@@ -13,18 +13,8 @@ RUN chmod +x ./gradlew
 # Build the application with Java 17
 RUN ./gradlew build -x test
 
-# Debug: Check what files were generated
-RUN echo "=== Checking build directory ==="
-RUN ls -la build/
-RUN echo "=== Checking build/libs directory ==="
-RUN ls -la build/libs/ || echo "build/libs directory not found"
-RUN echo "=== Finding all JAR files ==="
-RUN find . -name "*.jar" -type f
-RUN echo "=== Finding all WAR files ==="
-RUN find . -name "*.war" -type f
-
-# Copy the built JAR file
-RUN cp build/libs/*.jar app.jar
+# Copy the built JAR file (Spring Boot executable JAR)
+RUN cp build/libs/kyarte-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose port
 EXPOSE 8080
