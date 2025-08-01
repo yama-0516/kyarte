@@ -412,11 +412,13 @@ public class HelloController {
     public String initDummyEmployees() {
         System.out.println("=== ダミー社員20人作成開始 ===");
         
-        // 既存のデータをクリア
-        employeeRepository.deleteAll();
-        
-        		// ダミー社員データを作成
-		List<Employee> dummyEmployees = new ArrayList<>();
+        try {
+            // 既存のデータをクリア
+            employeeRepository.deleteAll();
+            System.out.println("既存データをクリアしました");
+            
+            // ダミー社員データを作成
+            List<Employee> dummyEmployees = new ArrayList<>();
 		
 		// 1. 田中 太郎
 		Employee emp1 = new Employee();
@@ -558,12 +560,45 @@ public class HelloController {
 		emp20.setPhone("090-0123-4567"); emp20.setNotes("レスポンシブデザイン、アクセシビリティ対応");
 		dummyEmployees.add(emp20);
         
-        // データベースに保存
-        employeeRepository.saveAll(dummyEmployees);
-        
-        System.out.println("=== ダミー社員20人作成完了 ===");
-        System.out.println("作成された社員数: " + dummyEmployees.size());
-        
-        return "ダミー社員20人を作成しました！";
+            // データベースに保存
+            employeeRepository.saveAll(dummyEmployees);
+            
+            System.out.println("=== ダミー社員20人作成完了 ===");
+            System.out.println("作成された社員数: " + dummyEmployees.size());
+            
+            return "ダミー社員20人を作成しました！作成数: " + dummyEmployees.size();
+            
+        } catch (Exception e) {
+            System.err.println("ダミー社員作成エラー: " + e.getMessage());
+            e.printStackTrace();
+            return "エラー: " + e.getMessage();
+        }
+    }
+    
+    @GetMapping("/debug/employee-count")
+    @ResponseBody
+    public String getEmployeeCount() {
+        try {
+            long count = employeeRepository.count();
+            List<Employee> allEmployees = employeeRepository.findAll();
+            
+            StringBuilder result = new StringBuilder();
+            result.append("=== 社員数確認 ===\n");
+            result.append("総社員数: ").append(count).append("\n\n");
+            result.append("=== 全社員一覧 ===\n");
+            
+            for (Employee emp : allEmployees) {
+                result.append("ID: ").append(emp.getId())
+                      .append(", 名前: ").append(emp.getFullName())
+                      .append(", 部署: ").append(emp.getDepartment())
+                      .append(", 役職: ").append(emp.getPosition())
+                      .append("\n");
+            }
+            
+            return result.toString();
+            
+        } catch (Exception e) {
+            return "エラー: " + e.getMessage();
+        }
     }
 }
