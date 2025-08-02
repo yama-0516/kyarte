@@ -43,12 +43,10 @@ public class HelloController {
     @GetMapping("/")
     public String index(Model model) {
         try {
-            List<Employee> employees = employeeService.getAllEmployees();
-            model.addAttribute("employees", employees);
-            model.addAttribute("totalCount", employees.size());
+            // 最新のノートを取得
+            model.addAttribute("recentNotes", freeNoteService.getRecentNotes());
         } catch (Exception e) {
-            model.addAttribute("employees", new ArrayList<>());
-            model.addAttribute("totalCount", 0);
+            model.addAttribute("recentNotes", new ArrayList<>());
             model.addAttribute("error", "データの取得に失敗しました: " + e.getMessage());
         }
         return "index";
