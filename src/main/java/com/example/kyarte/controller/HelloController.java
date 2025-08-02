@@ -19,6 +19,8 @@ import com.example.kyarte.repository.EmployeeRepository;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class HelloController {
@@ -40,9 +42,39 @@ public class HelloController {
     
     @GetMapping("/")
     public String index(Model model) {
-        // 最新のノートを取得
-        model.addAttribute("recentNotes", freeNoteService.getRecentNotes());
+        try {
+            List<Employee> employees = employeeService.getAllEmployees();
+            model.addAttribute("employees", employees);
+            model.addAttribute("totalCount", employees.size());
+        } catch (Exception e) {
+            model.addAttribute("employees", new ArrayList<>());
+            model.addAttribute("totalCount", 0);
+            model.addAttribute("error", "データの取得に失敗しました: " + e.getMessage());
+        }
         return "index";
+    }
+    
+    @GetMapping("/database")
+    public String database(Model model) {
+        try {
+            List<Employee> employees = employeeService.getAllEmployees();
+            model.addAttribute("employees", employees);
+            model.addAttribute("totalCount", employees.size());
+            
+            // 部署別の統計
+            Map<String, Long> departmentStats = employees.stream()
+                .collect(Collectors.groupingBy(
+                    emp -> emp.getDepartment() != null ? emp.getDepartment() : "未設定",
+                    Collectors.counting()
+                ));
+            model.addAttribute("departmentStats", departmentStats);
+            
+        } catch (Exception e) {
+            model.addAttribute("employees", new ArrayList<>());
+            model.addAttribute("totalCount", 0);
+            model.addAttribute("error", "データの取得に失敗しました: " + e.getMessage());
+        }
+        return "database";
     }
     
     @PostMapping("/save-note")
@@ -600,5 +632,12 @@ public class HelloController {
         } catch (Exception e) {
             return "エラー: " + e.getMessage();
         }
+    }
+    
+    @GetMapping("/error")
+    public String error(Model model) {
+        model.addAttribute("errorMessage", "ページが見つかりませんでした。");
+        model.addAttribute("errorCode", "404");
+        return "error";
     }
 }
