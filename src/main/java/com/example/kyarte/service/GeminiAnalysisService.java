@@ -4,10 +4,9 @@ import com.example.kyarte.dto.AiAnalysisResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -16,10 +15,10 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 @Service
-@Primary
+@Primary // Gemini AIを有効化
 public class GeminiAnalysisService implements AiAnalysisService {
 
-    @Value("${GEMINI_API_KEY:}")
+    @Value("${gemini.api.key:dummy_key}")
     private String apiKey;
 
     private final WebClient webClient;

@@ -67,6 +67,31 @@
             margin-bottom: 10px;
             border-left: 4px solid #ff6b35;
         }
+        .event-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px;
+            border-left: 3px solid #007bff;
+        }
+        .event-type-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        .event-type-meeting {
+            background-color: #007bff;
+        }
+        .event-type-vacation {
+            background-color: #28a745;
+        }
+        .event-type-deadline {
+            background-color: #dc3545;
+        }
+        .event-type-other {
+            background-color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -181,10 +206,61 @@
                         <div class="col-lg-4">
                             <div class="calendar-widget p-3">
                                 <h5><i class="fas fa-calendar-alt"></i> 直近の予定</h5>
-                                <div class="text-center text-muted py-4">
+                                
+                                <!-- 今日の予定 -->
+                                <div th:if="${!todayEvents.empty}" class="mb-3">
+                                    <h6 class="text-primary mb-2"><i class="fas fa-clock"></i> 今日</h6>
+                                    <div th:each="event : ${todayEvents}" class="event-item mb-2">
+                                        <div class="d-flex align-items-start">
+                                            <div class="event-type-indicator me-2" th:classappend="'event-type-' + ${event.eventType}"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" th:text="${event.title}"></div>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span th:text="${#temporals.format(event.startTime, 'HH:mm')}"></span>
+                                                    <span th:if="${event.location}" class="ms-2">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                        <span th:text="${event.location}"></span>
+                                                    </span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 今後の予定 -->
+                                <div th:if="${!upcomingEvents.empty}">
+                                    <h6 class="text-success mb-2"><i class="fas fa-calendar-week"></i> 今後の予定</h6>
+                                    <div th:each="event : ${upcomingEvents}" class="event-item mb-2">
+                                        <div class="d-flex align-items-start">
+                                            <div class="event-type-indicator me-2" th:classappend="'event-type-' + ${event.eventType}"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" th:text="${event.title}"></div>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i>
+                                                    <span th:text="${#temporals.format(event.startTime, 'MM/dd HH:mm')}"></span>
+                                                    <span th:if="${event.location}" class="ms-2">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                        <span th:text="${event.location}"></span>
+                                                    </span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 予定がない場合 -->
+                                <div th:if="${todayEvents.empty and upcomingEvents.empty}" class="text-center text-muted py-4">
                                     <i class="fas fa-calendar-plus fa-2x mb-2"></i>
-                                    <p>予定機能は今後実装予定</p>
+                                    <p>予定がありません</p>
                                     <small>AIが入力内容から自動で予定を抽出します</small>
+                                </div>
+                                
+                                <!-- カレンダーページへのリンク -->
+                                <div class="text-center mt-3">
+                                    <a href="/calendar" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-calendar-alt"></i> カレンダーを見る
+                                    </a>
                                 </div>
                             </div>
                         </div>

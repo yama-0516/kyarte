@@ -47,4 +47,8 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
     @Query("SELECT e FROM CalendarEvent e WHERE e.startTime BETWEEN :start AND :end ORDER BY e.startTime ASC")
     List<CalendarEvent> findEventsByDateRange(@Param("start") LocalDateTime start,
                                               @Param("end") LocalDateTime end);
-} 
+    
+    // 直近のイベントを取得（ホームページ用）
+    @Query(value = "SELECT * FROM calendar_events WHERE start_time >= :now ORDER BY start_time ASC LIMIT :limit", nativeQuery = true)
+    List<CalendarEvent> findUpcomingEvents(@Param("now") LocalDateTime now, @Param("limit") int limit);
+}

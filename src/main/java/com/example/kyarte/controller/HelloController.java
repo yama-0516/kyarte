@@ -17,7 +17,6 @@ import com.example.kyarte.service.MockAiAnalysisService;
 import com.example.kyarte.service.GeminiAnalysisService;
 import com.example.kyarte.repository.EmployeeRepository;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,8 +50,17 @@ public class HelloController {
         try {
             // 最新のノートを取得
             model.addAttribute("recentNotes", freeNoteService.getRecentNotes());
+            
+            // カレンダーデータを取得
+            List<CalendarEvent> upcomingEvents = calendarService.getUpcomingEvents(5); // 直近5件
+            List<CalendarEvent> todayEvents = calendarService.getTodayEventsRaw();
+            model.addAttribute("upcomingEvents", upcomingEvents);
+            model.addAttribute("todayEvents", todayEvents);
+            
         } catch (Exception e) {
             model.addAttribute("recentNotes", new ArrayList<>());
+            model.addAttribute("upcomingEvents", new ArrayList<>());
+            model.addAttribute("todayEvents", new ArrayList<>());
             model.addAttribute("error", "データの取得に失敗しました: " + e.getMessage());
         }
         return "index";

@@ -55,6 +55,12 @@ public class CalendarService {
         LocalDateTime weekEnd = LocalDateTime.of(LocalDate.now().plusDays(7), LocalTime.MAX);
         return calendarEventRepository.findThisWeekEvents(weekStart, weekEnd);
     }
+    
+    // 直近のイベント取得（ホームページ用）
+    public List<CalendarEvent> getUpcomingEvents(int limit) {
+        LocalDateTime now = LocalDateTime.now();
+        return calendarEventRepository.findUpcomingEvents(now, limit);
+    }
         
     // イベントタイプで取得
     public List<CalendarEvent> getTodayEventsByTimeRange() {

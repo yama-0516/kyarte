@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 @Service
+// @Primary // Gemini AIを優先するため無効化
 public class MockAiAnalysisService implements AiAnalysisService {
     
     @Override
