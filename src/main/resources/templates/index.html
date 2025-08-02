@@ -48,11 +48,8 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-        .menu-icon {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .calendar-widget {
             background: white;
@@ -73,20 +70,36 @@
     </style>
 </head>
 <body>
-    <!-- メニューアイコン -->
-    <div class="menu-icon">
-        <div class="dropdown">
-            <button class="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-bars"></i>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-star me-2"></i>Kyarte
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/database"><i class="fas fa-database"></i> データベース</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/debug/init-dummy-employees"><i class="fas fa-users"></i> ダミー社員作成</a></li>
-                <li><a class="dropdown-item" href="/debug/employee-count"><i class="fas fa-chart-bar"></i> 社員数確認</a></li>
-            </ul>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">
+                            <i class="fas fa-home me-1"></i>ホーム
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/employees">
+                            <i class="fas fa-users me-1"></i>従業員一覧
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/database">
+                            <i class="fas fa-database me-1"></i>データベース
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
+    </nav>
 
     <div class="container-fluid py-4">
         <div class="row justify-content-center">
