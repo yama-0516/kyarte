@@ -36,8 +36,8 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
     CalendarEvent findByGoogleCalendarId(String googleCalendarId);
     
     // 今日のイベントを検索
-    @Query("SELECT e FROM CalendarEvent e WHERE DATE(e.startTime) = CURRENT_DATE ORDER BY e.startTime ASC")
-    List<CalendarEvent> findTodayEvents();
+    @Query("SELECT e FROM CalendarEvent e WHERE e.startTime BETWEEN :start AND :end ORDER BY e.startTime ASC")
+    List<CalendarEvent> findTodayEvents(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     
     // 今週のイベントを検索
     @Query("SELECT e FROM CalendarEvent e WHERE e.startTime BETWEEN :weekStart AND :weekEnd ORDER BY e.startTime ASC")

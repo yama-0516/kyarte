@@ -60,9 +60,12 @@ public class CalendarService {
     }
     
     // イベントタイプで取得
-    public List<CalendarEvent> getEventsByType(String eventType) {
-        return calendarEventRepository.findByEventTypeOrderByStartTimeAsc(eventType);
+    public List<CalendarEvent> getTodayEvents() {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+        return calendarEventRepository.findTodayEvents(start, end);
     }
+    
     
     // イベント削除
     public void deleteEvent(Long id) {
