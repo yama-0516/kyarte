@@ -53,19 +53,13 @@ public class CalendarService {
         LocalDateTime weekEnd = LocalDateTime.of(LocalDate.now().plusDays(7), LocalTime.MAX);
         return calendarEventRepository.findThisWeekEvents(weekStart, weekEnd);
     }
-    
-    // 期間内のイベント取得
-    public List<CalendarEvent> getEventsBetweenDates(LocalDateTime startDate, LocalDateTime endDate) {
-        return calendarEventRepository.findEventsBetweenDates(startDate, endDate);
-    }
-    
+        
     // イベントタイプで取得
     public List<CalendarEvent> getTodayEvents() {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
         return calendarEventRepository.findTodayEvents(start, end);
     }
-    
     
     // イベント削除
     public void deleteEvent(Long id) {
