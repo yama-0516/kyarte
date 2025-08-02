@@ -21,6 +21,9 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.example.kyarte.service.CalendarService;
+import com.example.kyarte.entity.CalendarEvent;
+import java.time.LocalDateTime;
 
 @Controller
 public class HelloController {
@@ -39,6 +42,9 @@ public class HelloController {
     
     @Autowired
     private EmployeeRepository employeeRepository;
+    
+    @Autowired
+    private CalendarService calendarService;
     
     @GetMapping("/")
     public String index(Model model) {
@@ -605,5 +611,149 @@ public class HelloController {
         model.addAttribute("errorMessage", "ページが見つかりませんでした。");
         model.addAttribute("errorCode", "404");
         return "error";
+    }
+    
+    @GetMapping("/debug/init-dummy-events")
+    @ResponseBody
+    public String initDummyEvents() {
+        System.out.println("=== ダミーカレンダーイベント作成開始 ===");
+        
+        try {
+            // 既存のイベントをクリア
+            calendarService.getAllEvents().forEach(event -> calendarService.deleteEvent(event.getId()));
+            System.out.println("既存イベントをクリアしました");
+            
+            // 従業員データを取得
+            List<Employee> employees = employeeService.getAllEmployees();
+            if (employees.isEmpty()) {
+                return "エラー: 従業員データがありません。先にダミー社員を作成してください。";
+            }
+            
+            int createdCount = 0;
+            
+            // 1. 田中太郎の有給申請
+            CalendarEvent event1 = new CalendarEvent();
+            event1.setTitle("田中太郎 有給申請");
+            event1.setDescription("家族旅行のため有給を取得します。よろしくお願いします。");
+            event1.setStartTime(LocalDateTime.now().plusDays(5).withHour(9).withMinute(0));
+            event1.setEndTime(LocalDateTime.now().plusDays(5).withHour(18).withMinute(0));
+            event1.setEventType("vacation");
+            event1.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("太郎")).findFirst().orElse(employees.get(0)));
+            calendarService.saveEvent(event1);
+            createdCount++;
+            
+            // 2. 佐藤花子の長女誕生日
+            CalendarEvent event2 = new CalendarEvent();
+            event2.setTitle("佐藤花子 長女誕生日");
+            event2.setDescription("長女の5歳の誕生日。早退してケーキ作りとプレゼント準備。");
+            event2.setStartTime(LocalDateTime.now().plusDays(3).withHour(15).withMinute(0));
+            event2.setEndTime(LocalDateTime.now().plusDays(3).withHour(17).withMinute(0));
+            event2.setEventType("other");
+            event2.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("花子")).findFirst().orElse(employees.get(1)));
+            calendarService.saveEvent(event2);
+            createdCount++;
+            
+            // 3. 鈴木一郎の技術勉強会
+            CalendarEvent event3 = new CalendarEvent();
+            event3.setTitle("鈴木一郎 技術勉強会");
+            event3.setDescription("Spring Boot最新機能について勉強会を開催。参加者募集中。");
+            event3.setStartTime(LocalDateTime.now().plusDays(7).withHour(14).withMinute(0));
+            event3.setEndTime(LocalDateTime.now().plusDays(7).withHour(16).withMinute(0));
+            event3.setLocation("会議室A");
+            event3.setEventType("meeting");
+            event3.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("一郎")).findFirst().orElse(employees.get(2)));
+            calendarService.saveEvent(event3);
+            createdCount++;
+            
+            // 4. 高橋美咲のデザイン締切
+            CalendarEvent event4 = new CalendarEvent();
+            event4.setTitle("高橋美咲 新商品デザイン締切");
+            event4.setDescription("新商品のパッケージデザイン提出期限。クライアントとの最終確認。");
+            event4.setStartTime(LocalDateTime.now().plusDays(2).withHour(17).withMinute(0));
+            event4.setEndTime(LocalDateTime.now().plusDays(2).withHour(18).withMinute(0));
+            event4.setEventType("deadline");
+            event4.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("美咲")).findFirst().orElse(employees.get(3)));
+            calendarService.saveEvent(event4);
+            createdCount++;
+            
+            // 5. 渡辺健太の部下面談
+            CalendarEvent event5 = new CalendarEvent();
+            event5.setTitle("渡辺健太 部下面談");
+            event5.setDescription("新入社員の山田さんの定例面談。成長状況と今後の目標について。");
+            event5.setStartTime(LocalDateTime.now().plusDays(4).withHour(10).withMinute(0));
+            event5.setEndTime(LocalDateTime.now().plusDays(4).withHour(11).withMinute(0));
+            event5.setLocation("面談室");
+            event5.setEventType("meeting");
+            event5.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("健太")).findFirst().orElse(employees.get(4)));
+            calendarService.saveEvent(event5);
+            createdCount++;
+            
+            // 6. 伊藤恵子の歯医者
+            CalendarEvent event6 = new CalendarEvent();
+            event6.setTitle("伊藤恵子 歯医者予約");
+            event6.setDescription("定期検診のため歯医者に行きます。午後から出社予定。");
+            event6.setStartTime(LocalDateTime.now().plusDays(6).withHour(9).withMinute(30));
+            event6.setEndTime(LocalDateTime.now().plusDays(6).withHour(11).withMinute(0));
+            event6.setEventType("other");
+            event6.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("恵子")).findFirst().orElse(employees.get(5)));
+            calendarService.saveEvent(event6);
+            createdCount++;
+            
+            // 7. 山田大輔の子供の運動会
+            CalendarEvent event7 = new CalendarEvent();
+            event7.setTitle("山田大輔 子供の運動会");
+            event7.setDescription("長男の小学校運動会。応援に行くため半休を取得。");
+            event7.setStartTime(LocalDateTime.now().plusDays(8).withHour(13).withMinute(0));
+            event7.setEndTime(LocalDateTime.now().plusDays(8).withHour(17).withMinute(0));
+            event7.setEventType("other");
+            event7.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("大輔")).findFirst().orElse(employees.get(6)));
+            calendarService.saveEvent(event7);
+            createdCount++;
+            
+            // 8. 中村由美のSNS投稿締切
+            CalendarEvent event8 = new CalendarEvent();
+            event8.setTitle("中村由美 新商品SNS投稿締切");
+            event8.setDescription("新商品のInstagram投稿用写真撮影と投稿文案作成。");
+            event8.setStartTime(LocalDateTime.now().plusDays(1).withHour(16).withMinute(0));
+            event8.setEndTime(LocalDateTime.now().plusDays(1).withHour(17).withMinute(30));
+            event8.setEventType("deadline");
+            event8.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("由美")).findFirst().orElse(employees.get(7)));
+            calendarService.saveEvent(event8);
+            createdCount++;
+            
+            // 9. 小林正男の営業会議
+            CalendarEvent event9 = new CalendarEvent();
+            event9.setTitle("小林正男 月次営業会議");
+            event9.setDescription("今月の営業実績報告と来月の戦略会議。全営業担当者参加。");
+            event9.setStartTime(LocalDateTime.now().plusDays(10).withHour(14).withMinute(0));
+            event9.setEndTime(LocalDateTime.now().plusDays(10).withHour(16).withMinute(0));
+            event9.setLocation("大会議室");
+            event9.setEventType("meeting");
+            event9.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("正男")).findFirst().orElse(employees.get(8)));
+            calendarService.saveEvent(event9);
+            createdCount++;
+            
+            // 10. 加藤愛の採用面接
+            CalendarEvent event10 = new CalendarEvent();
+            event10.setTitle("加藤愛 新卒採用面接");
+            event10.setDescription("新卒採用の最終面接。技術職候補者3名の面接を実施。");
+            event10.setStartTime(LocalDateTime.now().plusDays(9).withHour(10).withMinute(0));
+            event10.setEndTime(LocalDateTime.now().plusDays(9).withHour(12).withMinute(0));
+            event10.setLocation("面接室");
+            event10.setEventType("meeting");
+            event10.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("愛")).findFirst().orElse(employees.get(9)));
+            calendarService.saveEvent(event10);
+            createdCount++;
+            
+            System.out.println("=== ダミーカレンダーイベント作成完了 ===");
+            System.out.println("作成されたイベント数: " + createdCount);
+            
+            return "ダミーカレンダーイベント" + createdCount + "件を作成しました！";
+            
+        } catch (Exception e) {
+            System.err.println("ダミーイベント作成エラー: " + e.getMessage());
+            e.printStackTrace();
+            return "エラー: " + e.getMessage();
+        }
     }
 }
