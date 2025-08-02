@@ -122,4 +122,9 @@ public class CalendarService {
             saveEvent(event);
         }
     }
+    
+    public List<CalendarEvent> getEventsByType(String eventType) {
+        return calendarEventRepository.findByEventTypeOrderByStartTimeAsc(eventType);
+    }
+    
 } 
