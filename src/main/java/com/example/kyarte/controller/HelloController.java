@@ -75,17 +75,7 @@ public class HelloController {
         return "database";
     }
     
-    @GetMapping("/employees")
-    public String employees(Model model) {
-        try {
-            List<Employee> employees = employeeService.getAllEmployees();
-            model.addAttribute("employees", employees);
-        } catch (Exception e) {
-            model.addAttribute("employees", new ArrayList<>());
-            model.addAttribute("error", "データの取得に失敗しました: " + e.getMessage());
-        }
-        return "employees/list";
-    }
+
     
     @PostMapping("/save-note")
     @ResponseBody
