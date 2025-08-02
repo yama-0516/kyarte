@@ -43,7 +43,7 @@ public class CalendarService {
     }
     
     // 今日のイベント取得
-    public List<CalendarEvent> getTodayEvents() {
+    public List<CalendarEvent> getTodayEventsRaw() {
         return calendarEventRepository.findTodayEvents();
     }
     
@@ -55,7 +55,7 @@ public class CalendarService {
     }
         
     // イベントタイプで取得
-    public List<CalendarEvent> getTodayEvents() {
+    public List<CalendarEvent> getTodayEventsByTimeRange() {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
         return calendarEventRepository.findTodayEvents(start, end);

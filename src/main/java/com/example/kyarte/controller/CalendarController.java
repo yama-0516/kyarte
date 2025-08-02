@@ -23,7 +23,7 @@ public class CalendarController {
     @GetMapping
     public String calendar(Model model) {
         try {
-            List<CalendarEvent> todayEvents = calendarService.getTodayEvents();
+            List<CalendarEvent> todayEvents = calendarService.getTodayEventsByTimeRange();
             List<CalendarEvent> weekEvents = calendarService.getThisWeekEvents();
             List<CalendarEvent> allEvents = calendarService.getAllEvents();
             
@@ -114,7 +114,7 @@ public class CalendarController {
     @GetMapping("/today")
     public String todayEvents(Model model) {
         try {
-            List<CalendarEvent> events = calendarService.getTodayEvents();
+            List<CalendarEvent> events = calendarService.getTodayEventsByTimeRange();
             model.addAttribute("events", events);
             model.addAttribute("title", "今日のイベント");
             return "calendar/list";
