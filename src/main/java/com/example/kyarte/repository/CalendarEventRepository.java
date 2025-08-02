@@ -43,4 +43,8 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
     @Query("SELECT e FROM CalendarEvent e WHERE e.startTime BETWEEN :weekStart AND :weekEnd ORDER BY e.startTime ASC")
     List<CalendarEvent> findThisWeekEvents(@Param("weekStart") LocalDateTime weekStart,
                                           @Param("weekEnd") LocalDateTime weekEnd);
+
+    @Query("SELECT e FROM CalendarEvent e WHERE e.startTime BETWEEN :start AND :end ORDER BY e.startTime ASC")
+    List<CalendarEvent> findEventsByDateRange(@Param("start") LocalDateTime start,
+                                              @Param("end") LocalDateTime end);
 } 
