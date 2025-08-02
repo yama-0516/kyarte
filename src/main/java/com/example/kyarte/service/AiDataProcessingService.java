@@ -3,10 +3,12 @@ package com.example.kyarte.service;
 import com.example.kyarte.dto.AiAnalysisResult;
 import com.example.kyarte.entity.Employee;
 import com.example.kyarte.entity.FreeNote;
+import com.example.kyarte.entity.CalendarEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,9 @@ public class AiDataProcessingService {
     
     @Autowired
     private AiAnalysisService aiAnalysisService;
+    
+    @Autowired
+    private CalendarService calendarService;
     
     /**
      * FreeNoteをAI解析して従業員データに反映
@@ -180,11 +185,90 @@ public class AiDataProcessingService {
     }
     
     /**
-     * 予定情報の処理
+     * 予定情報の処理 - AI解析結果からカレンダーイベントを作成
      */
     private void processScheduleInfo(Employee employee, AiAnalysisResult analysis) {
-        // 予定関連の特別処理
-        // 将来的に予定管理テーブルを作成して連携
+        try {
+            System.out.println("=== processScheduleInfo Debug ===");
+            System.out.println("Creating calendar event for employee: " + employee.getFullName());
+            System.out.println("Analysis content: " + analysis.getContent());
+            
+            // AI解析結果からカレンダーイベントを作成
+            CalendarEvent event = new CalendarEvent();
+            
+            // 基本情報設定
+            event.setTitle(extractEventTitle(analysis.getContent()));
+            event.setDescription(analysis.getContent());
+            event.setEventType(determineEventType(analysis.getContent()));
+            event.setLocation(""); // デフォルトは空
+            
+            // 日時設定（AI解析結果から抽出、デフォルトは明日）
+            LocalDateTime eventDateTime = extractEventDateTime(analysis.getContent());
+            event.setStartTime(eventDateTime);
+            event.setEndTime(eventDateTime.plusHours(1)); // デフォルト1時間
+            
+            // 従業員情報設定
+            event.setEmployee(employee);
+            
+            // カレンダーイベントを保存
+            CalendarEvent savedEvent = calendarService.saveEvent(event);
+            System.out.println("Calendar event created successfully with ID: " + savedEvent.getId());
+            
+        } catch (Exception e) {
+            System.err.println("カレンダーイベント作成エラー: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * AI解析結果からイベントタイトルを抽出
+     */
+    private String extractEventTitle(String content) {
+        // 簡単なルールベースでタイトルを生成
+        if (content.contains("会議")) {
+            return "会議";
+        } else if (content.contains("有給") || content.contains("休暇")) {
+            return "有給休暇";
+        } else if (content.contains("締切") || content.contains("期限")) {
+            return "締切";
+        } else if (content.contains("予定")) {
+            return "予定";
+        } else {
+            return "その他の予定";
+        }
+    }
+    
+    /**
+     * AI解析結果からイベントタイプを決定
+     */
+    private String determineEventType(String content) {
+        if (content.contains("会議")) {
+            return "meeting";
+        } else if (content.contains("有給") || content.contains("休暇")) {
+            return "vacation";
+        } else if (content.contains("締切") || content.contains("期限")) {
+            return "deadline";
+        } else {
+            return "other";
+        }
+    }
+    
+    /**
+     * AI解析結果から日時を抽出（デフォルトは明日の9時）
+     */
+    private LocalDateTime extractEventDateTime(String content) {
+        LocalDateTime defaultDateTime = LocalDate.now().plusDays(1).atTime(9, 0);
+        
+        // 簡単なルールベースで日時を抽出
+        if (content.contains("今日")) {
+            return LocalDate.now().atTime(9, 0);
+        } else if (content.contains("明日")) {
+            return LocalDate.now().plusDays(1).atTime(9, 0);
+        } else if (content.contains("来週")) {
+            return LocalDate.now().plusWeeks(1).atTime(9, 0);
+        } else {
+            return defaultDateTime;
+        }
     }
     
     /**
