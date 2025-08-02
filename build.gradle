@@ -30,6 +30,13 @@ dependencies {
 	implementation 'org.postgresql:postgresql' // Added for PostgreSQL
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	
+	// カレンダー連携用
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'com.google.apis:google-api-services-calendar:v3-rev411-1.25.0'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.11.0'
+	implementation 'com.google.auth:google-auth-library-credentials:1.11.0'
+	
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 

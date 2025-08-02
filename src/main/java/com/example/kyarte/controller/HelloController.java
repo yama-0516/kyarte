@@ -124,41 +124,7 @@ public class HelloController {
         return "HelloController is working!";
     }
     
-    // デバッグ用：従業員検索テスト
-    @GetMapping("/debug/employees")
-    @ResponseBody
-    public String debugEmployees() {
-        try {
-            List<Employee> allEmployees = employeeService.getAllEmployees();
-            StringBuilder result = new StringBuilder();
-            result.append("=== 全従業員 ===\n");
-            
-            for (Employee emp : allEmployees) {
-                result.append("ID: ").append(emp.getId())
-                      .append(", 名前: ").append(emp.getFullName())
-                      .append(", 姓: ").append(emp.getLastName())
-                      .append(", 名: ").append(emp.getFirstName())
-                      .append(", メモ: ").append(emp.getNotes())
-                      .append("\n");
-            }
-            
-            // 佐藤で検索テスト
-            List<Employee> satoEmployees = employeeService.searchEmployeesByName("佐藤");
-            result.append("\n=== 佐藤で検索結果 ===\n");
-            result.append("検索結果数: ").append(satoEmployees.size()).append("\n");
-            
-            for (Employee emp : satoEmployees) {
-                result.append("ID: ").append(emp.getId())
-                      .append(", 名前: ").append(emp.getFullName())
-                      .append("\n");
-            }
-            
-            return result.toString();
-            
-        } catch (Exception e) {
-            return "エラー: " + e.getMessage();
-        }
-    }
+
     
     // デバッグ用：AI解析テスト
     @GetMapping("/debug/ai-test")
