@@ -342,6 +342,16 @@
             }
 
             const inputType = document.getElementById('voiceResult').style.display !== 'none' ? 'voice' : 'text';
+            const sendBtn = document.getElementById('sendBtn');
+            
+            // ローディング状態に変更
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI解析中...';
+            sendBtn.classList.add('btn-warning');
+            sendBtn.classList.remove('btn-primary');
+            
+            // AI思考中メッセージを表示
+            showAiThinkingMessage();
             
             // 送信処理
             fetch('/save-note', {
@@ -353,17 +363,36 @@
             })
             .then(response => response.text())
             .then(result => {
+                // ローディング状態を解除
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 送信';
+                sendBtn.classList.remove('btn-warning');
+                sendBtn.classList.add('btn-primary');
+                
+                // AI思考中メッセージを非表示
+                hideAiThinkingMessage();
+                
                 if (result === 'success') {
-                    alert('保存しました！');
+                    showSuccessMessage('AI解析が完了しました！カレンダーに予定が追加された可能性があります。');
                     document.getElementById('freeInput').value = '';
                     document.getElementById('voiceResult').style.display = 'none';
                     // ページをリロードして履歴を更新
-                    location.reload();
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showErrorMessage('保存に失敗しました: ' + result);
                 }
             })
             .catch(error => {
                 console.error('エラー:', error);
-                alert('保存に失敗しました。');
+                // ローディング状態を解除
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 送信';
+                sendBtn.classList.remove('btn-warning');
+                sendBtn.classList.add('btn-primary');
+                
+                // AI思考中メッセージを非表示
+                hideAiThinkingMessage();
+                showErrorMessage('送信に失敗しました。ネットワーク接続を確認してください。');
             });
         });
     </script>

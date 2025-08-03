@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イベント登録 - Kyarte</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .form-header h2 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .form-header p {
+            color: #666;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+        }
+        .event-type-select {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .event-type-option {
+            flex: 1;
+            min-width: 120px;
+        }
+        .event-type-option input[type="radio"] {
+            display: none;
+        }
+        .event-type-option label {
+            display: block;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .event-type-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        .event-type-option label:hover {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-calendar-plus"></i> イベント登録</h2>
+                <p>新しいカレンダーイベントを登録します</p>
+            </div>
+
+            <form th:action="@{/calendar}" th:object="${event}" method="post">
+                <!-- 編集時のID -->
+                <input type="hidden" th:field="*{id}" th:if="*{id != null}">
+
+                <!-- タイトル -->
+                <div class="form-group">
+                    <label for="title" class="form-label">
+                        <i class="fas fa-heading"></i> タイトル <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="title" th:field="*{title}" 
+                           placeholder="イベントのタイトルを入力してください" required>
+                </div>
+
+                <!-- 説明 -->
+                <div class="form-group">
+                    <label for="description" class="form-label">
+                        <i class="fas fa-align-left"></i> 説明
+                    </label>
+                    <textarea class="form-control" id="description" th:field="*{description}" 
+                              rows="3" placeholder="イベントの詳細を入力してください"></textarea>
+                </div>
+
+                <!-- 開始日時 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="startDate" class="form-label">
+                                <i class="fas fa-calendar"></i> 開始日 <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="startDate" 
+                                   th:value="${#temporals.format(event.startTime, 'yyyy-MM-dd')}" 
+                                   name="startDate" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="startTime" class="form-label">
+                                <i class="fas fa-clock"></i> 開始時刻 <span class="text-danger">*</span>
+                            </label>
+                            <input type="time" class="form-control" id="startTime" 
+                                   th:value="${#temporals.format(event.startTime, 'HH:mm')}" 
+                                   name="startTime" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 終了日時 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="endDate" class="form-label">
+                                <i class="fas fa-calendar"></i> 終了日 <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="endDate" 
+                                   th:value="${#temporals.format(event.endTime, 'yyyy-MM-dd')}" 
+                                   name="endDate" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="endTime" class="form-label">
+                                <i class="fas fa-clock"></i> 終了時刻 <span class="text-danger">*</span>
+                            </label>
+                            <input type="time" class="form-control" id="endTime" 
+                                   th:value="${#temporals.format(event.endTime, 'HH:mm')}" 
+                                   name="endTime" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 場所 -->
+                <div class="form-group">
+                    <label for="location" class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> 場所
+                    </label>
+                    <input type="text" class="form-control" id="location" th:field="*{location}" 
+                           placeholder="開催場所を入力してください">
+                </div>
+
+                <!-- イベントタイプ -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tags"></i> イベントタイプ
+                    </label>
+                    <div class="event-type-select">
+                        <div class="event-type-option">
+                            <input type="radio" id="meeting" name="eventType" value="meeting" 
+                                   th:checked="*{eventType == 'meeting'}">
+                            <label for="meeting">
+                                <i class="fas fa-users"></i><br>会議
+                            </label>
+                        </div>
+                        <div class="event-type-option">
+                            <input type="radio" id="vacation" name="eventType" value="vacation" 
+                                   th:checked="*{eventType == 'vacation'}">
+                            <label for="vacation">
+                                <i class="fas fa-umbrella-beach"></i><br>休暇
+                            </label>
+                        </div>
+                        <div class="event-type-option">
+                            <input type="radio" id="deadline" name="eventType" value="deadline" 
+                                   th:checked="*{eventType == 'deadline'}">
+                            <label for="deadline">
+                                <i class="fas fa-exclamation-triangle"></i><br>締切
+                            </label>
+                        </div>
+                        <div class="event-type-option">
+                            <input type="radio" id="other" name="eventType" value="other" 
+                                   th:checked="*{eventType == 'other' or eventType == null}">
+                            <label for="other">
+                                <i class="fas fa-calendar-alt"></i><br>その他
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ボタン -->
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-primary me-3">
+                        <i class="fas fa-save"></i> 保存
+                    </button>
+                    <a href="/calendar" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> キャンセル
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // デフォルト値設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const startTimeInput = document.getElementById('startTime');
+            const endTimeInput = document.getElementById('endTime');
+            
+            // 新規作成時のデフォルト値設定
+            if (!startDateInput.value) {
+                const today = new Date();
+                startDateInput.value = today.toISOString().split('T')[0];
+                endDateInput.value = today.toISOString().split('T')[0];
+            }
+            
+            if (!startTimeInput.value) {
+                startTimeInput.value = '09:00';
+                endTimeInput.value = '10:00';
+            }
+            
+            // デフォルトでotherを選択
+            if (!document.querySelector('input[name="eventType"]:checked')) {
+                document.getElementById('other').checked = true;
+            }
+        });
+    </script>
+</body>
+</html>

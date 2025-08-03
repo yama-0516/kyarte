@@ -63,8 +63,19 @@ public class CalendarController {
     
     // イベント作成
     @PostMapping
-    public String createEvent(@ModelAttribute CalendarEvent event) {
+    public String createEvent(@ModelAttribute CalendarEvent event,
+                            @RequestParam String startDate,
+                            @RequestParam String startTime,
+                            @RequestParam String endDate,
+                            @RequestParam String endTime) {
         try {
+            // 日時データを正しく設定
+            LocalDateTime startDateTime = LocalDateTime.parse(startDate + "T" + startTime);
+            LocalDateTime endDateTime = LocalDateTime.parse(endDate + "T" + endTime);
+            
+            event.setStartTime(startDateTime);
+            event.setEndTime(endDateTime);
+            
             calendarService.saveEvent(event);
             return "redirect:/calendar";
         } catch (Exception e) {
@@ -89,9 +100,21 @@ public class CalendarController {
     
     // イベント更新
     @PostMapping("/{id}")
-    public String updateEvent(@PathVariable Long id, @ModelAttribute CalendarEvent event) {
+    public String updateEvent(@PathVariable Long id, 
+                            @ModelAttribute CalendarEvent event,
+                            @RequestParam String startDate,
+                            @RequestParam String startTime,
+                            @RequestParam String endDate,
+                            @RequestParam String endTime) {
         try {
+            // 日時データを正しく設定
+            LocalDateTime startDateTime = LocalDateTime.parse(startDate + "T" + startTime);
+            LocalDateTime endDateTime = LocalDateTime.parse(endDate + "T" + endTime);
+            
             event.setId(id);
+            event.setStartTime(startDateTime);
+            event.setEndTime(endDateTime);
+            
             calendarService.saveEvent(event);
             return "redirect:/calendar";
         } catch (Exception e) {
