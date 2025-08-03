@@ -188,35 +188,64 @@ public class AiDataProcessingService {
      * 予定情報の処理 - AI解析結果からカレンダーイベントを作成
      */
     private void processScheduleInfo(Employee employee, AiAnalysisResult analysis) {
+        System.out.println("\n=== processScheduleInfo Debug START ===");
+        System.out.println("Employee: " + (employee != null ? employee.getFullName() + " (ID: " + employee.getId() + ")" : "NULL"));
+        System.out.println("Analysis content: " + analysis.getContent());
+        
         try {
-            System.out.println("=== processScheduleInfo Debug ===");
-            System.out.println("Creating calendar event for employee: " + employee.getFullName());
-            System.out.println("Analysis content: " + analysis.getContent());
-            
-            // AI解析結果からカレンダーイベントを作成
+            // Step 1: CalendarEventオブジェクト作成
+            System.out.println("Step 1: Creating CalendarEvent object...");
             CalendarEvent event = new CalendarEvent();
+            System.out.println("Step 1: SUCCESS - CalendarEvent object created");
             
-            // 基本情報設定
-            event.setTitle(extractEventTitle(analysis.getContent()));
+            // Step 2: 基本情報設定
+            System.out.println("Step 2: Setting basic event information...");
+            String title = extractEventTitle(analysis.getContent());
+            String eventType = determineEventType(analysis.getContent());
+            
+            event.setTitle(title);
             event.setDescription(analysis.getContent());
-            event.setEventType(determineEventType(analysis.getContent()));
+            event.setEventType(eventType);
             event.setLocation(""); // デフォルトは空
             
-            // 日時設定（AI解析結果から抽出、デフォルトは明日）
+            System.out.println("Step 2: SUCCESS - Title: " + title + ", Type: " + eventType);
+            
+            // Step 3: 日時設定
+            System.out.println("Step 3: Setting event date/time...");
             LocalDateTime eventDateTime = extractEventDateTime(analysis.getContent());
+            LocalDateTime endDateTime = eventDateTime.plusHours(1);
+            
             event.setStartTime(eventDateTime);
-            event.setEndTime(eventDateTime.plusHours(1)); // デフォルト1時間
+            event.setEndTime(endDateTime);
             
-            // 従業員情報設定
+            System.out.println("Step 3: SUCCESS - Start: " + eventDateTime + ", End: " + endDateTime);
+            
+            // Step 4: 従業員情報設定
+            System.out.println("Step 4: Setting employee information...");
+            if (employee == null) {
+                throw new RuntimeException("Employee is null - cannot create calendar event");
+            }
             event.setEmployee(employee);
+            System.out.println("Step 4: SUCCESS - Employee set: " + employee.getFullName());
             
-            // カレンダーイベントを保存
+            // Step 5: データベース保存
+            System.out.println("Step 5: Saving calendar event to database...");
             CalendarEvent savedEvent = calendarService.saveEvent(event);
-            System.out.println("Calendar event created successfully with ID: " + savedEvent.getId());
+            System.out.println("Step 5: SUCCESS - Calendar event saved with ID: " + savedEvent.getId());
+            
+            System.out.println("=== processScheduleInfo Debug END (SUCCESS) ===");
             
         } catch (Exception e) {
-            System.err.println("カレンダーイベント作成エラー: " + e.getMessage());
+            System.err.println("\n=== processScheduleInfo ERROR ===");
+            System.err.println("Error Type: " + e.getClass().getSimpleName());
+            System.err.println("Error Message: " + e.getMessage());
+            System.err.println("Employee Info: " + (employee != null ? employee.getFullName() + " (ID: " + employee.getId() + ")" : "NULL"));
+            System.err.println("Analysis Content: " + analysis.getContent());
             e.printStackTrace();
+            System.err.println("=== processScheduleInfo Debug END (ERROR) ===");
+            
+            // エラーを再スローして上位でキャッチできるようにする
+            throw new RuntimeException("Calendar event creation failed: " + e.getMessage(), e);
         }
     }
     
