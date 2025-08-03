@@ -96,35 +96,46 @@ public class HelloController {
     @PostMapping("/save-note")
     @ResponseBody
     public String saveNote(@RequestParam String content, @RequestParam String inputType) {
+        System.out.println("\n=== HelloController Debug START ===");
+        System.out.println("Timestamp: " + java.time.LocalDateTime.now());
+        System.out.println("Received content (raw): " + content);
+        System.out.println("Received inputType: " + inputType);
+        
         try {
-            System.out.println("=== HelloController Debug ===");
-            System.out.println("Received content (raw): " + content);
-            System.out.println("Received content (bytes): " + java.util.Arrays.toString(content.getBytes("UTF-8")));
-            System.out.println("Received inputType: " + inputType);
-            
-            // FreeNoteを保存
+            // Step 1: FreeNoteを保存
+            System.out.println("Step 1: Saving FreeNote...");
             FreeNote note = new FreeNote();
             note.setContent(content);
             note.setInputType(inputType);
             FreeNote savedNote = freeNoteService.saveFreeNote(note);
-            System.out.println("Saved FreeNote ID: " + savedNote.getId());
+            System.out.println("Step 1: SUCCESS - Saved FreeNote ID: " + savedNote.getId());
             
-            // AI解析を実行（同期で実行してデバッグ）
-            System.out.println("Starting AI processing...");
+            // Step 2: AI解析を実行
+            System.out.println("Step 2: Starting AI processing...");
             try {
-                System.out.println("AI processing started");
                 aiDataProcessingService.processFreeNoteWithAi(savedNote);
-                System.out.println("AI processing completed successfully");
-            } catch (Exception e) {
-                System.err.println("AI解析エラー: " + e.getMessage());
-                e.printStackTrace();
+                System.out.println("Step 2: SUCCESS - AI processing completed");
+            } catch (Exception aiError) {
+                System.err.println("Step 2: AI解析エラー発生!");
+                System.err.println("AI Error Type: " + aiError.getClass().getSimpleName());
+                System.err.println("AI Error Message: " + aiError.getMessage());
+                aiError.printStackTrace();
+                
+                // AIエラーでも基本的な保存は成功しているので、ユーザーには部分的成功を通知
+                return "partial_success: ノートは保存されましたが、AI解析でエラーが発生しました: " + aiError.getMessage();
             }
             
+            System.out.println("=== HelloController Debug END (SUCCESS) ===");
             return "success";
-        } catch (Exception e) {
-            System.err.println("Controller error: " + e.getMessage());
-            e.printStackTrace();
-            return "error: " + e.getMessage();
+            
+        } catch (Exception mainError) {
+            System.err.println("\n=== CRITICAL ERROR in HelloController ===");
+            System.err.println("Main Error Type: " + mainError.getClass().getSimpleName());
+            System.err.println("Main Error Message: " + mainError.getMessage());
+            mainError.printStackTrace();
+            System.err.println("=== HelloController Debug END (ERROR) ===");
+            
+            return "error: " + mainError.getMessage();
         }
     }
     

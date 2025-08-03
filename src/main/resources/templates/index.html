@@ -372,14 +372,26 @@
                 // AI思考中メッセージを非表示
                 hideAiThinkingMessage();
                 
+                console.log('Server response:', result);
+                
                 if (result === 'success') {
                     showSuccessMessage('AI解析が完了しました！カレンダーに予定が追加された可能性があります。');
                     document.getElementById('freeInput').value = '';
                     document.getElementById('voiceResult').style.display = 'none';
                     // ページをリロードして履歴を更新
                     setTimeout(() => location.reload(), 2000);
+                } else if (result.startsWith('partial_success:')) {
+                    const message = result.substring('partial_success:'.length).trim();
+                    showWarningMessage('部分的成功: ' + message);
+                    document.getElementById('freeInput').value = '';
+                    document.getElementById('voiceResult').style.display = 'none';
+                    // 部分的成功でもリロードして履歴を更新
+                    setTimeout(() => location.reload(), 3000);
+                } else if (result.startsWith('error:')) {
+                    const errorMessage = result.substring('error:'.length).trim();
+                    showErrorMessage('エラー: ' + errorMessage);
                 } else {
-                    showErrorMessage('保存に失敗しました: ' + result);
+                    showErrorMessage('不明なエラー: ' + result);
                 }
             })
             .catch(error => {
