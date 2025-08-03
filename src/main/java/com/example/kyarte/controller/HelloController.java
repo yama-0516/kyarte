@@ -15,6 +15,8 @@ import com.example.kyarte.service.AiAnalysisService;
 import com.example.kyarte.dto.AiAnalysisResult;
 import com.example.kyarte.service.MockAiAnalysisService;
 import com.example.kyarte.service.GeminiAnalysisService;
+import com.example.kyarte.service.CalendarService;
+import com.example.kyarte.entity.CalendarEvent;
 import com.example.kyarte.repository.EmployeeRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,10 +42,10 @@ public class HelloController {
     private AiAnalysisService aiAnalysisService;
     
     @Autowired
-    private EmployeeRepository employeeRepository;
+    private CalendarService calendarService;
     
     @Autowired
-    private CalendarService calendarService;
+    private EmployeeRepository employeeRepository;
     
     @GetMapping("/")
     public String index(Model model) {
@@ -324,6 +326,79 @@ public class HelloController {
         }
     }
     
+    // デバッグ用：音声入力→AI解析→カレンダー作成の流れをテスト
+    @GetMapping("/debug/voice-to-calendar-test")
+    @ResponseBody
+    public String debugVoiceToCalendarTest() {
+        try {
+            String testContent = "明日の会議の予定";
+            System.out.println("=== Voice to Calendar Debug Test ===");
+            System.out.println("Test content: " + testContent);
+            
+            // 1. FreeNote作成
+            FreeNote testNote = new FreeNote();
+            testNote.setContent(testContent);
+            testNote.setInputType("voice");
+            FreeNote savedNote = freeNoteService.saveFreeNote(testNote);
+            System.out.println("FreeNote saved with ID: " + savedNote.getId());
+            
+            // 2. AI解析実行
+            System.out.println("Starting AI processing...");
+            aiDataProcessingService.processFreeNoteWithAi(savedNote);
+            System.out.println("AI processing completed");
+            
+            // 3. カレンダーイベント確認
+            List<CalendarEvent> recentEvents = calendarService.getUpcomingEvents(10);
+            System.out.println("Recent calendar events count: " + recentEvents.size());
+            
+            StringBuilder result = new StringBuilder();
+            result.append("=== Voice to Calendar Test Results ===\n");
+            result.append("Test content: ").append(testContent).append("\n");
+            result.append("FreeNote ID: ").append(savedNote.getId()).append("\n");
+            result.append("AI Service: ").append(aiAnalysisService.getServiceName()).append("\n");
+            result.append("Recent events count: ").append(recentEvents.size()).append("\n");
+            
+            for (CalendarEvent event : recentEvents) {
+                result.append("- Event: ").append(event.getTitle())
+                      .append(" (").append(event.getStartTime()).append(")\n");
+            }
+            
+            return result.toString();
+            
+        } catch (Exception e) {
+            return "Voice to Calendar Test Error: " + e.getMessage() + "\n" + 
+                   "Stack trace: " + java.util.Arrays.toString(e.getStackTrace());
+        }
+    }
+    
+    // デバッグ用：環境変数とAPIキー詳細確認
+    @GetMapping("/debug/env-check")
+    @ResponseBody
+    public String debugEnvironmentCheck() {
+        StringBuilder result = new StringBuilder();
+        result.append("=== Environment Variables Debug ===\n");
+        
+        // 1. Spring Profile確認
+        String activeProfile = System.getProperty("spring.profiles.active");
+        String envProfile = System.getenv("SPRING_PROFILES_ACTIVE");
+        result.append("Active Profile (System Property): ").append(activeProfile).append("\n");
+        result.append("Active Profile (Environment): ").append(envProfile).append("\n");
+        
+        // 2. 環境変数直接確認
+        String geminiKeyEnv = System.getenv("GEMINI_API_KEY");
+        String openaiKeyEnv = System.getenv("OPENAI_API_KEY");
+        String databaseUrl = System.getenv("DATABASE_URL");
+        
+        result.append("GEMINI_API_KEY (env): ").append(geminiKeyEnv != null ? "[SET - Length: " + geminiKeyEnv.length() + "]": "[NOT SET]").append("\n");
+        result.append("OPENAI_API_KEY (env): ").append(openaiKeyEnv != null ? "[SET - Length: " + openaiKeyEnv.length() + "]": "[NOT SET]").append("\n");
+        result.append("DATABASE_URL (env): ").append(databaseUrl != null ? "[SET - Length: " + databaseUrl.length() + "]": "[NOT SET]").append("\n");
+        
+        // 3. AIサービス確認
+        result.append("AI Service Name: ").append(aiAnalysisService.getServiceName()).append("\n");
+        
+        return result.toString();
+    }
+    
     // デバッグ用：APIキー確認
     @GetMapping("/debug/api-key-check")
     @ResponseBody
@@ -425,9 +500,19 @@ public class HelloController {
         System.out.println("=== ダミー社員20人作成開始 ===");
         
         try {
-            // 既存のデータをクリア
+            // 参照整合性制約違反を避けるため、カレンダーイベントを先に削除
+            calendarService.getAllEvents().forEach(event -> {
+                try {
+                    calendarService.deleteEvent(event.getId());
+                } catch (Exception e) {
+                    System.err.println("イベント削除エラー: " + e.getMessage());
+                }
+            });
+            System.out.println("既存カレンダーイベントをクリアしました");
+            
+            // 既存の従業員データをクリア
             employeeRepository.deleteAll();
-            System.out.println("既存データをクリアしました");
+            System.out.println("既存従業員データをクリアしました");
             
             // ダミー社員データを作成
             List<Employee> dummyEmployees = new ArrayList<>();
@@ -639,6 +724,21 @@ public class HelloController {
             
             int createdCount = 0;
             
+            // 安全な従業員検索のヘルパーメソッド
+            java.util.function.Function<String, Employee> findEmployeeByFirstName = (firstName) -> {
+                return employees.stream()
+                    .filter(e -> e.getFirstName().equals(firstName))
+                    .findFirst()
+                    .orElse(employees.get(0)); // フォールバック: 最初の従業員
+            };
+            
+            java.util.function.Function<String, Employee> findEmployeeByLastName = (lastName) -> {
+                return employees.stream()
+                    .filter(e -> e.getLastName().equals(lastName))
+                    .findFirst()
+                    .orElse(employees.get(0)); // フォールバック: 最初の従業員
+            };
+            
             // 1. 田中太郎の有給申請
             CalendarEvent event1 = new CalendarEvent();
             event1.setTitle("田中太郎 有給申請");
@@ -646,7 +746,7 @@ public class HelloController {
             event1.setStartTime(LocalDateTime.now().plusDays(5).withHour(9).withMinute(0));
             event1.setEndTime(LocalDateTime.now().plusDays(5).withHour(18).withMinute(0));
             event1.setEventType("vacation");
-            event1.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("太郎")).findFirst().orElse(employees.get(0)));
+            event1.setEmployee(findEmployeeByFirstName.apply("太郎"));
             calendarService.saveEvent(event1);
             createdCount++;
             
@@ -657,7 +757,7 @@ public class HelloController {
             event2.setStartTime(LocalDateTime.now().plusDays(3).withHour(15).withMinute(0));
             event2.setEndTime(LocalDateTime.now().plusDays(3).withHour(17).withMinute(0));
             event2.setEventType("other");
-            event2.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("花子")).findFirst().orElse(employees.get(1)));
+            event2.setEmployee(findEmployeeByFirstName.apply("花子"));
             calendarService.saveEvent(event2);
             createdCount++;
             
@@ -669,7 +769,7 @@ public class HelloController {
             event3.setEndTime(LocalDateTime.now().plusDays(7).withHour(16).withMinute(0));
             event3.setLocation("会議室A");
             event3.setEventType("meeting");
-            event3.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("一郎")).findFirst().orElse(employees.get(2)));
+            event3.setEmployee(findEmployeeByFirstName.apply("一郎"));
             calendarService.saveEvent(event3);
             createdCount++;
             
@@ -680,7 +780,7 @@ public class HelloController {
             event4.setStartTime(LocalDateTime.now().plusDays(2).withHour(17).withMinute(0));
             event4.setEndTime(LocalDateTime.now().plusDays(2).withHour(18).withMinute(0));
             event4.setEventType("deadline");
-            event4.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("美咲")).findFirst().orElse(employees.get(3)));
+            event4.setEmployee(findEmployeeByFirstName.apply("美咲"));
             calendarService.saveEvent(event4);
             createdCount++;
             
@@ -692,7 +792,7 @@ public class HelloController {
             event5.setEndTime(LocalDateTime.now().plusDays(4).withHour(11).withMinute(0));
             event5.setLocation("面談室");
             event5.setEventType("meeting");
-            event5.setEmployee(employees.stream().filter(e -> e.getFirstName().equals("健太")).findFirst().orElse(employees.get(4)));
+            event5.setEmployee(findEmployeeByFirstName.apply("健太"));
             calendarService.saveEvent(event5);
             createdCount++;
             
