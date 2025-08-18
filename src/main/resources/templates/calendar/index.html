@@ -66,7 +66,7 @@
     <!-- ナビゲーションバー -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="/" th:href="@{/}">
                 <i class="fas fa-star me-2"></i>Kyarte
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -75,22 +75,22 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
+                        <a class="nav-link" href="/" th:href="@{/}">
                             <i class="fas fa-home me-1"></i>ホーム
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/employees">
+                        <a class="nav-link" href="/employees" th:href="@{/employees}">
                             <i class="fas fa-users me-1"></i>従業員一覧
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/database">
+                        <a class="nav-link" href="/database" th:href="@{/database}">
                             <i class="fas fa-database me-1"></i>データベース
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/calendar">
+                        <a class="nav-link active" href="/calendar" th:href="@{/calendar}">
                             <i class="fas fa-calendar me-1"></i>カレンダー
                         </a>
                     </li>
@@ -109,7 +109,7 @@
                 <p class="text-muted">イベントとスケジュールの管理</p>
             </div>
             <div class="col-auto">
-                <a href="/calendar/new" class="btn btn-primary">
+                <a href="/calendar/new" th:href="@{/calendar/new}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>新規イベント
                 </a>
             </div>
@@ -169,7 +169,7 @@
                         <h5 class="mb-0">
                             <i class="fas fa-calendar-day me-2"></i>今日のイベント
                         </h5>
-                        <a href="/calendar/today" class="btn btn-sm btn-outline-primary">すべて見る</a>
+                        <a href="/calendar/today" th:href="@{/calendar/today}" class="btn btn-sm btn-outline-primary">すべて見る</a>
                     </div>
                     <div class="card-body">
                         <div th:if="${#lists.isEmpty(todayEvents)}" class="text-center py-4">
@@ -223,7 +223,7 @@
                         <h5 class="mb-0">
                             <i class="fas fa-calendar-week me-2"></i>今週のイベント
                         </h5>
-                        <a href="/calendar/week" class="btn btn-sm btn-outline-primary">すべて見る</a>
+                        <a href="/calendar/week" th:href="@{/calendar/week}" class="btn btn-sm btn-outline-primary">すべて見る</a>
                     </div>
                     <div class="card-body">
                         <div th:if="${#lists.isEmpty(weekEvents)}" class="text-center py-4">
@@ -283,22 +283,22 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3 mb-2">
-                                <a href="/calendar/new" class="btn btn-outline-primary w-100">
+                                <a href="/calendar/new" th:href="@{/calendar/new}" class="btn btn-outline-primary w-100">
                                     <i class="fas fa-plus me-2"></i>新規イベント
                                 </a>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <a href="/calendar/type/meeting" class="btn btn-outline-info w-100">
+                                <a href="/calendar/type/meeting" th:href="@{/calendar/type/meeting}" class="btn btn-outline-info w-100">
                                     <i class="fas fa-users me-2"></i>会議一覧
                                 </a>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <a href="/calendar/type/vacation" class="btn btn-outline-success w-100">
+                                <a href="/calendar/type/vacation" th:href="@{/calendar/type/vacation}" class="btn btn-outline-success w-100">
                                     <i class="fas fa-umbrella-beach me-2"></i>有給一覧
                                 </a>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <a href="/calendar/type/deadline" class="btn btn-outline-danger w-100">
+                                <a href="/calendar/type/deadline" th:href="@{/calendar/type/deadline}" class="btn btn-outline-danger w-100">
                                     <i class="fas fa-clock me-2"></i>締切一覧
                                 </a>
                             </div>

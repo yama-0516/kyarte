@@ -98,7 +98,7 @@
     <!-- ナビゲーションバー -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="/" th:href="@{/}">
                 <i class="fas fa-star me-2"></i>Kyarte
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -107,22 +107,22 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/">
+                        <a class="nav-link active" href="/" th:href="@{/}">
                             <i class="fas fa-home me-1"></i>ホーム
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/employees">
+                        <a class="nav-link" href="/employees" th:href="@{/employees}">
                             <i class="fas fa-users me-1"></i>従業員一覧
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/database">
+                        <a class="nav-link" href="/database" th:href="@{/database}">
                             <i class="fas fa-database me-1"></i>データベース
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/calendar">
+                        <a class="nav-link" href="/calendar" th:href="@{/calendar}">
                             <i class="fas fa-calendar me-1"></i>カレンダー
                         </a>
                     </li>
@@ -258,7 +258,7 @@
                                 
                                 <!-- カレンダーページへのリンク -->
                                 <div class="text-center mt-3">
-                                    <a href="/calendar" class="btn btn-outline-primary btn-sm">
+                                    <a href="/calendar" th:href="@{/calendar}" class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-calendar-alt"></i> カレンダーを見る
                                     </a>
                                 </div>
