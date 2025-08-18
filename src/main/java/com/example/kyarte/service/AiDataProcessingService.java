@@ -71,8 +71,13 @@ public class AiDataProcessingService {
         System.out.println("Processing analysis result for employee: " + employeeName);
         
         if (employeeName == null || employeeName.isEmpty()) {
-            // 従業員名が見つからない場合は未分類として処理
-            System.out.println("Employee name is null or empty, skipping processing");
+            // 従業員名が見つからない場合でも、予定カテゴリなら汎用イベントとして登録
+            if (AiAnalysisResult.CATEGORY_SCHEDULE.equals(analysis.getCategory())) {
+                System.out.println("Employee name missing but category is schedule; creating general calendar event");
+                createGeneralScheduleEvent(analysis);
+            } else {
+                System.out.println("Employee name is null or empty, skipping processing");
+            }
             return;
         }
         
@@ -138,6 +143,10 @@ public class AiDataProcessingService {
             case AiAnalysisResult.CATEGORY_SCHEDULE:
                 // 予定情報の処理
                 processScheduleInfo(employee, analysis);
+                break;
+            case AiAnalysisResult.CATEGORY_PERSONAL:
+                // 個人情報（誕生日など）の処理
+                processPersonalInfo(employee, analysis);
                 break;
             case AiAnalysisResult.CATEGORY_PERFORMANCE:
                 // 評価情報の処理
@@ -206,7 +215,9 @@ public class AiDataProcessingService {
             event.setTitle(title);
             event.setDescription(analysis.getContent());
             event.setEventType(eventType);
-            event.setLocation(""); // デフォルトは空
+            event.setLocation(extractEventLocation(analysis.getContent()));
+            event.setAttendees(extractEventAttendees(analysis.getContent()));
+            event.setPrivate(extractPrivacy(analysis.getContent()));
             
             System.out.println("Step 2: SUCCESS - Title: " + title + ", Type: " + eventType);
             
@@ -318,4 +329,87 @@ public class AiDataProcessingService {
             processFreeNoteWithAi(note);
         }
     }
+    
+    /**
+     * 個人情報（誕生日など）の処理
+     */
+    private void processPersonalInfo(Employee employee, AiAnalysisResult analysis) {
+        String content = analysis.getContent();
+        if (content == null) {
+            return;
+        }
+        String lc = content.toLowerCase();
+        boolean isBirthday = content.contains("誕生日") || content.contains("バースデー") || lc.contains("birthday");
+        if (!isBirthday) {
+            return;
+        }
+        try {
+            CalendarEvent event = new CalendarEvent();
+            event.setTitle("誕生日");
+            event.setDescription(content);
+            event.setEventType("birthday");
+            event.setLocation(extractEventLocation(content));
+            event.setAttendees(extractEventAttendees(content));
+            event.setPrivate(extractPrivacy(content));
+            event.setLocation("");
+            LocalDateTime start = extractEventDateTime(content);
+            LocalDateTime end = start.plusHours(1);
+            event.setStartTime(start);
+            event.setEndTime(end);
+            if (employee == null) {
+                throw new RuntimeException("Employee is null - cannot create birthday event");
+            }
+            event.setEmployee(employee);
+            calendarService.saveEvent(event);
+        } catch (Exception e) {
+            System.err.println("processPersonalInfo error: " + e.getMessage());
+        }
+    }
+
+	private void createGeneralScheduleEvent(AiAnalysisResult analysis) {
+		System.out.println("\n=== createGeneralScheduleEvent Debug START ===");
+		try {
+			CalendarEvent event = new CalendarEvent();
+			event.setTitle(extractEventTitle(analysis.getContent()));
+			event.setDescription(analysis.getContent());
+			event.setEventType(determineEventType(analysis.getContent()));
+			event.setLocation(extractEventLocation(analysis.getContent()));
+			event.setAttendees(extractEventAttendees(analysis.getContent()));
+			event.setPrivate(extractPrivacy(analysis.getContent()));
+			java.time.LocalDateTime start = extractEventDateTime(analysis.getContent());
+			java.time.LocalDateTime end = start.plusHours(1);
+			event.setStartTime(start);
+			event.setEndTime(end);
+			// 従業員は紐付けない（NULL）
+			calendarService.saveEvent(event);
+			System.out.println("=== createGeneralScheduleEvent Debug END (SUCCESS) ===");
+		} catch (Exception e) {
+			System.err.println("createGeneralScheduleEvent ERROR: " + e.getMessage());
+		}
+	}
+	
+	private String extractEventLocation(String content) {
+		// 例: 「@渋谷オフィス」「場所:会議室A」
+		java.util.regex.Matcher m1 = java.util.regex.Pattern.compile("@([^\n\r\s]+)").matcher(content);
+		if (m1.find()) return m1.group(1);
+		java.util.regex.Matcher m2 = java.util.regex.Pattern.compile("場所\s*[:：]\s*([^\n\r]+)").matcher(content);
+		if (m2.find()) return m2.group(1).trim();
+		return "";
+	}
+	
+	private String extractEventAttendees(String content) {
+		// 例: 「参加者: 田中, 佐藤」「with 田中・佐藤」
+		java.util.regex.Matcher m1 = java.util.regex.Pattern.compile("参加者\s*[:：]\s*([^\n\r]+)").matcher(content);
+		if (m1.find()) return m1.group(1).replaceAll("[・、]", ",").replaceAll("\s+", "").trim();
+		java.util.regex.Matcher m2 = java.util.regex.Pattern.compile("with\s+([^\n\r]+)", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(content);
+		if (m2.find()) return m2.group(1).replaceAll("[・、]", ",").replaceAll("\s+", "").trim();
+		return null;
+	}
+	
+	private boolean extractPrivacy(String content) {
+		String lc = content.toLowerCase();
+		if (content.contains("非公開") || lc.contains("private") || lc.contains("confidential")) return true;
+		if (content.contains("公開") || lc.contains("public")) return false;
+		return false;
+	}
 } 
