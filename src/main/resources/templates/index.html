@@ -406,6 +406,88 @@
                 hideAiThinkingMessage();
                 showErrorMessage('送信に失敗しました。ネットワーク接続を確認してください。');
             });
+        
+        // AI思考中メッセージ表示・非表示機能
+        function showAiThinkingMessage() {
+            // 既存のメッセージを削除
+            hideAiThinkingMessage();
+            
+            // AI思考中メッセージを作成
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'aiThinkingMessage';
+            thinkingDiv.className = 'alert alert-info d-flex align-items-center mt-3';
+            thinkingDiv.innerHTML = `
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div>
+                    <strong>AI解析中...</strong><br>
+                    <small>入力内容を解析し、従業員情報やカレンダー予定を自動抽出しています。しばらくお待ちください。</small>
+                </div>
+            `;
+            
+            // フォームの下に挿入
+            const formContainer = document.querySelector('.input-section');
+            if (formContainer) {
+                formContainer.appendChild(thinkingDiv);
+            }
+        }
+        
+        function hideAiThinkingMessage() {
+            const thinkingMessage = document.getElementById('aiThinkingMessage');
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+        }
+        
+        // 成功メッセージ表示
+        function showSuccessMessage(message) {
+            showMessage(message, 'success');
+        }
+        
+        // 警告メッセージ表示
+        function showWarningMessage(message) {
+            showMessage(message, 'warning');
+        }
+        
+        // エラーメッセージ表示
+        function showErrorMessage(message) {
+            showMessage(message, 'danger');
+        }
+        
+        // メッセージ表示共通関数
+        function showMessage(message, type) {
+            // 既存のメッセージを削除
+            const existingMessage = document.getElementById('statusMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // メッセージを作成
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'statusMessage';
+            messageDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            messageDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-triangle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // フォームの下に挿入
+            const formContainer = document.querySelector('.input-section');
+            if (formContainer) {
+                formContainer.appendChild(messageDiv);
+            }
+            
+            // 自動で消去（成功メッセージのみ）
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (messageDiv && messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 5000);
+            }
+        }
         });
     </script>
 </body>

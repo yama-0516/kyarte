@@ -42,7 +42,27 @@ public class EmployeeService {
     
     // 氏名で検索
     public List<Employee> searchEmployeesByName(String name) {
-        return employeeRepository.findByLastNameContainingOrFirstNameContaining(name, name);
+        // まず部分一致検索
+        List<Employee> results = employeeRepository.findByLastNameContainingOrFirstNameContaining(name, name);
+        if (results != null && !results.isEmpty()) {
+            return results;
+        }
+        // 入力に姓/名が含まれるケース（例: 佐藤太郎, 佐藤さん など）
+        String normalized = normalizeNameForSearch(name);
+        List<Employee> contained = employeeRepository.findByNameContainedIn(normalized);
+        return contained;
+    }
+
+    private String normalizeNameForSearch(String name) {
+        if (name == null) {
+            return "";
+        }
+        String trimmed = name.trim();
+        // 敬称の除去
+        trimmed = trimmed.replaceAll("(さん|氏|様)$", "");
+        // 全角スペース・半角スペース除去
+        trimmed = trimmed.replaceAll("[\\s　]+", "");
+        return trimmed;
     }
     
     // 入社年で検索

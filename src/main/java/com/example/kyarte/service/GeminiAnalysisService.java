@@ -38,13 +38,17 @@ public class GeminiAnalysisService implements AiAnalysisService {
     @Override
     public AiAnalysisResult analyzeContent(String content) {
         try {
-            if (apiKey == null || apiKey.isEmpty()) {
-                System.out.println("Gemini API key not configured, falling back to mock analysis");
+            if (!isApiKeyConfigured()) {
+                System.out.println("Gemini API key not configured or placeholder detected, falling back to mock analysis");
                 return createMockResult(content);
             }
 
             String prompt = createAnalysisPrompt(content);
             String responseText = callGeminiApi(prompt);
+            if (responseText == null || responseText.isBlank()) {
+                System.err.println("Gemini API returned empty response, falling back to mock analysis");
+                return createMockResult(content);
+            }
             return parseGeminiResponse(responseText, content);
 
         } catch (Exception e) {
@@ -57,13 +61,17 @@ public class GeminiAnalysisService implements AiAnalysisService {
     @Override
     public List<AiAnalysisResult> analyzeMultipleContent(String content) {
         try {
-            if (apiKey == null || apiKey.isEmpty()) {
-                System.out.println("Gemini API key not configured, falling back to mock analysis");
+            if (!isApiKeyConfigured()) {
+                System.out.println("Gemini API key not configured or placeholder detected, falling back to mock analysis");
                 return createMockMultipleResults(content);
             }
 
             String prompt = createMultipleAnalysisPrompt(content);
             String responseText = callGeminiApi(prompt);
+            if (responseText == null || responseText.isBlank()) {
+                System.err.println("Gemini API returned empty response, falling back to mock analysis");
+                return createMockMultipleResults(content);
+            }
             return parseGeminiMultipleResponse(responseText, content);
 
         } catch (Exception e) {
@@ -112,17 +120,32 @@ public class GeminiAnalysisService implements AiAnalysisService {
         }
     }
 
+    private boolean isApiKeyConfigured() {
+        if (apiKey == null) {
+            return false;
+        }
+        String trimmed = apiKey.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        String lower = trimmed.toLowerCase();
+        if ("dummy_key".equals(lower) || "your_api_key".equals(lower) || "your_api-key".equals(lower)) {
+            return false;
+        }
+        return true;
+    }
+
     private String createAnalysisPrompt(String content) {
         return """
             以下のテキストから従業員の情報を抽出してください。
 
             入力テキスト: %s
 
-            以下のJSON形式で回答してください：
+            以下のJSONオブジェクトのみを厳密に出力してください。JSON以外（説明文、マークダウン、バッククォートなど）は一切含めないでください：
             {
                 "employeeName": "従業員名（姓のみ）",
                 "action": "add_note",
-                "content": "元のテキスト",
+                "content": "該当する部分の元テキスト",
                 "category": "vacation|health|schedule|performance|personal|uncategorized",
                 "confidence": "high|medium|low"
             }
@@ -144,7 +167,7 @@ public class GeminiAnalysisService implements AiAnalysisService {
 
             入力テキスト: %s
 
-            以下のJSON形式で回答してください：
+            以下のJSON配列のみを厳密に出力してください。JSON以外（説明文、マークダウン、バッククォートなど）は一切含めないでください：
             [
                 {
                     "employeeName": "従業員名（姓のみ）",
@@ -172,16 +195,7 @@ public class GeminiAnalysisService implements AiAnalysisService {
 
             // まず、Gemini AIのレスポンス全体をJSONとして解析
             JsonNode responseNode = objectMapper.readTree(responseText);
-            
-            // candidates[0].content.parts[0].text からJSONを抽出
-            String jsonText = responseNode
-                .path("candidates")
-                .path(0)
-                .path("content")
-                .path("parts")
-                .path(0)
-                .path("text")
-                .asText();
+            String jsonText = extractTextFromCandidates(responseNode);
             
             System.out.println("Extracted text from response: " + jsonText);
             
@@ -189,6 +203,15 @@ public class GeminiAnalysisService implements AiAnalysisService {
             String jsonContent = extractJsonFromMarkdown(jsonText);
             System.out.println("Extracted JSON content: " + jsonContent);
             
+            if (jsonContent == null || jsonContent.isBlank()) {
+                System.err.println("Gemini response did not contain JSON text, falling back to mock");
+                // 任意文字列から最初のJSONオブジェクトを抽出
+                jsonContent = findFirstJson(jsonText, false);
+                if (jsonContent == null || jsonContent.isBlank()) {
+                    return createMockResult(originalContent);
+                }
+            }
+
             // JSONを解析
             JsonNode jsonNode = objectMapper.readTree(jsonContent);
             
@@ -217,8 +240,8 @@ public class GeminiAnalysisService implements AiAnalysisService {
     
     private String extractJsonFromMarkdown(String markdownText) {
         try {
-            // ```json\n{...}\n``` の形式からJSONを抽出
-            Pattern pattern = Pattern.compile("```json\\s*\\n(.*?)\\n```", Pattern.DOTALL);
+            // ```json\n...\n``` や ```\n...\n``` の形式からJSONを抽出（言語ラベル任意/CRLF対応）
+            Pattern pattern = Pattern.compile("```[a-zA-Z]*\\s*\\R?(.*?)\\R?```", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(markdownText);
             
             if (matcher.find()) {
@@ -234,22 +257,74 @@ public class GeminiAnalysisService implements AiAnalysisService {
         }
     }
 
+    /**
+     * candidates[].content.parts[].text を連結して返す。空なら従来の1件目にフォールバック。
+     */
+    private String extractTextFromCandidates(JsonNode responseNode) {
+        try {
+            JsonNode candidates = responseNode.path("candidates");
+            if (candidates.isArray()) {
+                StringBuilder combined = new StringBuilder();
+                for (JsonNode cand : candidates) {
+                    JsonNode parts = cand.path("content").path("parts");
+                    if (parts.isArray()) {
+                        for (JsonNode p : parts) {
+                            String t = p.path("text").asText(null);
+                            if (t != null) {
+                                combined.append(t).append("\n");
+                            }
+                        }
+                    }
+                }
+                String s = combined.toString().trim();
+                if (!s.isEmpty()) {
+                    return s;
+                }
+            }
+        } catch (Exception ignore) {}
+        return responseNode.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText();
+    }
+
+    /**
+     * 任意テキストから最初のJSON片（配列/オブジェクト）を括弧バランスで抽出
+     */
+    private String findFirstJson(String text, boolean arrayPreferred) {
+        if (text == null) return null;
+        String trimmed = text.trim();
+        String json = arrayPreferred ? extractBalanced(trimmed, '[', ']') : extractBalanced(trimmed, '{', '}');
+        if (json == null || json.isBlank()) {
+            json = arrayPreferred ? extractBalanced(trimmed, '{', '}') : extractBalanced(trimmed, '[', ']');
+        }
+        return json;
+    }
+
+    private String extractBalanced(String text, char open, char close) {
+        int start = -1;
+        int depth = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == open) {
+                if (depth == 0) {
+                    start = i;
+                }
+                depth++;
+            } else if (c == close && depth > 0) {
+                depth--;
+                if (depth == 0 && start >= 0) {
+                    return text.substring(start, i + 1);
+                }
+            }
+        }
+        return null;
+    }
+
     private List<AiAnalysisResult> parseGeminiMultipleResponse(String responseText, String originalContent) {
         try {
             List<AiAnalysisResult> results = new ArrayList<>();
 
             // まず、Gemini AIのレスポンス全体をJSONとして解析
             JsonNode responseNode = objectMapper.readTree(responseText);
-            
-            // candidates[0].content.parts[0].text からJSONを抽出
-            String jsonText = responseNode
-                .path("candidates")
-                .path(0)
-                .path("content")
-                .path("parts")
-                .path(0)
-                .path("text")
-                .asText();
+            String jsonText = extractTextFromCandidates(responseNode);
             
             System.out.println("=== parseGeminiMultipleResponse Debug ===");
             System.out.println("Extracted text from response: " + jsonText);
@@ -258,8 +333,20 @@ public class GeminiAnalysisService implements AiAnalysisService {
             String jsonContent = extractJsonFromMarkdown(jsonText);
             System.out.println("Extracted JSON content: " + jsonContent);
             
+            if (jsonContent == null || jsonContent.isBlank()) {
+                System.err.println("Gemini response did not contain JSON array text, falling back to mock");
+                // 任意文字列から最初のJSON配列を抽出。無ければオブジェクトを配列化
+                jsonContent = findFirstJson(jsonText, true);
+                if (jsonContent == null || jsonContent.isBlank()) {
+                    return createMockMultipleResults(originalContent);
+                }
+            }
+
             // JSON配列を解析
             JsonNode jsonArray = objectMapper.readTree(jsonContent);
+            if (!jsonArray.isArray()) {
+                jsonArray = objectMapper.readTree("[" + jsonArray.toString() + "]");
+            }
             
             if (jsonArray.isArray()) {
                 for (JsonNode item : jsonArray) {
@@ -279,6 +366,18 @@ public class GeminiAnalysisService implements AiAnalysisService {
                         item.toString()
                     ));
                 }
+            }
+
+            if (results.isEmpty()) {
+                // 解析できなかった場合は、元テキストを1件として返す
+                results.add(new AiAnalysisResult(
+                    null,
+                    "add_note",
+                    originalContent,
+                    "uncategorized",
+                    "low",
+                    responseText
+                ));
             }
 
             return results;

@@ -15,6 +15,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     // 氏名で検索（部分一致）
     List<Employee> findByLastNameContainingOrFirstNameContaining(String lastName, String firstName);
+
+    // 入力文字列に従業員の姓/名が含まれている場合にマッチ（例: 入力が「佐藤太郎」でも命中）
+    @Query("SELECT e FROM Employee e WHERE :name LIKE CONCAT('%', e.lastName, '%') OR :name LIKE CONCAT('%', e.firstName, '%')")
+    List<Employee> findByNameContainedIn(@Param("name") String name);
     
     // 入社年で検索
     @Query("SELECT e FROM Employee e WHERE YEAR(e.hireDate) = :year")
