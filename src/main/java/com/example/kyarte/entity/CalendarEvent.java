@@ -41,11 +41,11 @@ public class CalendarEvent {
     private String googleCalendarId;
     
     @Column(name = "is_synced")
-    private boolean isSynced = false;
+    private Boolean isSynced = false;
     
     // 非公開フラグ
     @Column(name = "is_private")
-    private boolean isPrivate = false;
+    private Boolean isPrivate = false;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -90,11 +90,20 @@ public class CalendarEvent {
     public String getGoogleCalendarId() { return googleCalendarId; }
     public void setGoogleCalendarId(String googleCalendarId) { this.googleCalendarId = googleCalendarId; }
     
-    public boolean isSynced() { return isSynced; }
-    public void setSynced(boolean synced) { isSynced = synced; }
+    public Boolean isSynced() { return isSynced; }
+    public void setSynced(Boolean synced) { isSynced = synced; }
     
-    public boolean isPrivate() { return isPrivate; }
-    public void setPrivate(boolean aPrivate) { isPrivate = aPrivate; }
+    public Boolean isPrivate() { return isPrivate; }
+    public void setPrivate(Boolean aPrivate) { isPrivate = aPrivate; }
+    
+    // テンプレート用のヘルパーメソッド
+    public boolean getIsPrivate() { 
+        return isPrivate != null ? isPrivate : false; 
+    }
+    
+    public boolean getIsSynced() { 
+        return isSynced != null ? isSynced : false; 
+    }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

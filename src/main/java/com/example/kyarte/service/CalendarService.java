@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class CalendarService {
@@ -44,29 +45,49 @@ public class CalendarService {
     
     // 今日のイベント取得
     public List<CalendarEvent> getTodayEventsRaw() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        return calendarEventRepository.findTodayEvents(start, end);
+        try {
+            LocalDateTime start = LocalDate.now().atStartOfDay();
+            LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+            return calendarEventRepository.findTodayEvents(start, end);
+        } catch (Exception e) {
+            System.err.println("Error fetching today events: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
     
     // 今週のイベント取得
     public List<CalendarEvent> getThisWeekEvents() {
-        LocalDateTime weekStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
-        LocalDateTime weekEnd = LocalDateTime.of(LocalDate.now().plusDays(7), LocalTime.MAX);
-        return calendarEventRepository.findThisWeekEvents(weekStart, weekEnd);
+        try {
+            LocalDateTime weekStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+            LocalDateTime weekEnd = LocalDateTime.of(LocalDate.now().plusDays(7), LocalTime.MAX);
+            return calendarEventRepository.findThisWeekEvents(weekStart, weekEnd);
+        } catch (Exception e) {
+            System.err.println("Error fetching week events: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
     
     // 直近のイベント取得（ホームページ用）
     public List<CalendarEvent> getUpcomingEvents(int limit) {
-        LocalDateTime now = LocalDateTime.now();
-        return calendarEventRepository.findUpcomingEvents(now, limit);
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            return calendarEventRepository.findUpcomingEvents(now, limit);
+        } catch (Exception e) {
+            System.err.println("Error fetching upcoming events: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
         
     // イベントタイプで取得
     public List<CalendarEvent> getTodayEventsByTimeRange() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        return calendarEventRepository.findTodayEvents(start, end);
+        try {
+            LocalDateTime start = LocalDate.now().atStartOfDay();
+            LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+            return calendarEventRepository.findTodayEvents(start, end);
+        } catch (Exception e) {
+            System.err.println("Error fetching today events by time range: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
     
     // イベント削除
