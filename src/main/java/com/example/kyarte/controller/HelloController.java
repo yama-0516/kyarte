@@ -151,6 +151,19 @@ public class HelloController {
         return "HelloController is working!";
     }
     
+    // デバッグ用エンドポイント
+    @GetMapping("/debug/test")
+    @ResponseBody
+    public String debugTest() {
+        return "HelloController is working! Current time: " + LocalDateTime.now();
+    }
+    
+    // カレンダーデバッグ用エンドポイント
+    @GetMapping("/debug/calendar-test")
+    @ResponseBody
+    public String calendarTest() {
+        return "Calendar test endpoint is working! Current time: " + LocalDateTime.now();
+    }
 
     
     // デバッグ用：AI解析テスト
