@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/calendar")
@@ -30,18 +31,33 @@ public class CalendarController {
         System.out.println("=== CalendarController.calendar() called ===");
         try {
             System.out.println("Fetching calendar data...");
-            List<CalendarEvent> todayEvents = calendarService.getTodayEventsByTimeRange();
-            List<CalendarEvent> weekEvents = calendarService.getThisWeekEvents();
-            List<CalendarEvent> allEvents = calendarService.getAllEvents();
             
-            System.out.println("Today events: " + todayEvents.size());
-            System.out.println("Week events: " + weekEvents.size());
-            System.out.println("All events: " + allEvents.size());
-            
-            model.addAttribute("todayEvents", todayEvents);
-            model.addAttribute("weekEvents", weekEvents);
-            model.addAttribute("allEvents", allEvents);
-            model.addAttribute("today", LocalDate.now());
+            // データベース接続テスト
+            try {
+                List<CalendarEvent> todayEvents = calendarService.getTodayEventsByTimeRange();
+                List<CalendarEvent> weekEvents = calendarService.getThisWeekEvents();
+                List<CalendarEvent> allEvents = calendarService.getAllEvents();
+                
+                System.out.println("Today events: " + todayEvents.size());
+                System.out.println("Week events: " + weekEvents.size());
+                System.out.println("All events: " + allEvents.size());
+                
+                model.addAttribute("todayEvents", todayEvents);
+                model.addAttribute("weekEvents", weekEvents);
+                model.addAttribute("allEvents", allEvents);
+                model.addAttribute("today", LocalDate.now());
+                
+            } catch (Exception dbError) {
+                System.err.println("Database error: " + dbError.getMessage());
+                dbError.printStackTrace();
+                
+                // データベースエラーの場合は空のリストを設定
+                model.addAttribute("todayEvents", new ArrayList<>());
+                model.addAttribute("weekEvents", new ArrayList<>());
+                model.addAttribute("allEvents", new ArrayList<>());
+                model.addAttribute("today", LocalDate.now());
+                model.addAttribute("error", "データベース接続エラー: " + dbError.getMessage());
+            }
             
             System.out.println("Returning calendar/index view");
             return "calendar/index";
@@ -50,6 +66,10 @@ public class CalendarController {
             System.err.println("Calendar error: " + e.getMessage());
             e.printStackTrace();
             model.addAttribute("error", "カレンダーデータの取得に失敗しました: " + e.getMessage());
+            model.addAttribute("todayEvents", new ArrayList<>());
+            model.addAttribute("weekEvents", new ArrayList<>());
+            model.addAttribute("allEvents", new ArrayList<>());
+            model.addAttribute("today", LocalDate.now());
             return "calendar/index";
         }
     }

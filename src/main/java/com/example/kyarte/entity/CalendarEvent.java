@@ -28,10 +28,10 @@ public class CalendarEvent {
     
     // 参加者（カンマ区切り）
     @Column(name = "attendees")
-    private String attendees;
+    private String attendees = "";
     
     @Column(name = "event_type")
-    private String eventType; // meeting, vacation, deadline, etc.
+    private String eventType = "other"; // meeting, vacation, deadline, etc.
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
