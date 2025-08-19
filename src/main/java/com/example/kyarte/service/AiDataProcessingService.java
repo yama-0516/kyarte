@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Service
 @Transactional
@@ -216,7 +218,9 @@ public class AiDataProcessingService {
             event.setDescription(analysis.getContent());
             event.setEventType(eventType);
             event.setLocation(extractEventLocation(analysis.getContent()));
-            event.setAttendees(extractEventAttendees(analysis.getContent()));
+            String attendees = extractEventAttendees(analysis.getContent());
+            attendees = ensureIncludesEmployee(attendees, employee);
+            event.setAttendees(attendees);
             event.setPrivate(extractPrivacy(analysis.getContent()));
             
             System.out.println("Step 2: SUCCESS - Title: " + title + ", Type: " + eventType);
@@ -349,7 +353,9 @@ public class AiDataProcessingService {
             event.setDescription(content);
             event.setEventType("birthday");
             event.setLocation(extractEventLocation(content));
-            event.setAttendees(extractEventAttendees(content));
+            String attendees = extractEventAttendees(content);
+            attendees = ensureIncludesEmployee(attendees, employee);
+            event.setAttendees(attendees);
             event.setPrivate(extractPrivacy(content));
             event.setLocation("");
             LocalDateTime start = extractEventDateTime(content);
@@ -398,12 +404,33 @@ public class AiDataProcessingService {
 	}
 	
 	private String extractEventAttendees(String content) {
-		// 例: 「参加者: 田中, 佐藤」「with 田中・佐藤」
+		// 1) 明示指定のパターンを優先: 「参加者: 田中, 佐藤」「with 田中・佐藤」
 		java.util.regex.Matcher m1 = java.util.regex.Pattern.compile("参加者\s*[:：]\s*([^\n\r]+)").matcher(content);
 		if (m1.find()) return m1.group(1).replaceAll("[・、]", ",").replaceAll("\s+", "").trim();
 		java.util.regex.Matcher m2 = java.util.regex.Pattern.compile("with\s+([^\n\r]+)", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(content);
 		if (m2.find()) return m2.group(1).replaceAll("[・、]", ",").replaceAll("\s+", "").trim();
-		return null;
+		
+		// 2) フォールバック: 文中から従業員名（姓/名）を抽出してリスト化
+		try {
+			List<Employee> all = employeeService.getAllEmployees();
+			Set<String> detected = new LinkedHashSet<>();
+			for (Employee e : all) {
+				String last = e.getLastName() != null ? e.getLastName().trim() : "";
+				String first = e.getFirstName() != null ? e.getFirstName().trim() : "";
+				if (!last.isEmpty() && content.contains(last)) {
+					detected.add(last);
+				}
+				if (!first.isEmpty() && content.contains(first)) {
+					// 名でヒットした場合も姓で登録
+					detected.add(last.isEmpty() ? first : last);
+				}
+			}
+			if (!detected.isEmpty()) {
+				return String.join(",", detected);
+			}
+		} catch (Exception ignore) {}
+		
+		return "";
 	}
 	
 	private boolean extractPrivacy(String content) {
@@ -411,5 +438,20 @@ public class AiDataProcessingService {
 		if (content.contains("非公開") || lc.contains("private") || lc.contains("confidential")) return true;
 		if (content.contains("公開") || lc.contains("public")) return false;
 		return false;
+	}
+	
+	// 参加者文字列にメイン従業員（姓）を含める
+	private String ensureIncludesEmployee(String attendees, Employee employee) {
+		if (employee == null) return attendees != null ? attendees : "";
+		Set<String> set = new LinkedHashSet<>();
+		if (attendees != null && !attendees.trim().isEmpty()) {
+			for (String part : attendees.split(",")) {
+				String p = part.trim();
+				if (!p.isEmpty()) set.add(p);
+			}
+		}
+		String mainName = employee.getLastName() != null ? employee.getLastName().trim() : "";
+		if (!mainName.isEmpty()) set.add(mainName);
+		return String.join(",", set);
 	}
 } 
